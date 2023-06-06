@@ -1,0 +1,117 @@
+import 'package:flutter/material.dart';
+import 'package:isport_app/assets/assets.dart';
+import 'package:isport_app/main/info_user.dart';
+import 'package:isport_app/main/navigation_bar.dart';
+import 'package:isport_app/widget/button_next.dart';
+
+import '../until/global.dart';
+
+class ListUserScreen extends StatefulWidget {
+  static String routeName = "/list_user_screen";
+  const ListUserScreen({Key? key}) : super(key: key);
+
+  @override
+  State<ListUserScreen> createState() => _ListUserScreenState();
+}
+
+class _ListUserScreenState extends State<ListUserScreen> {
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(child: Scaffold(
+      appBar: AppBar(
+        backgroundColor: Color(Global.primaryColor),
+        centerTitle: true,
+        leading: GestureDetector(
+          onTap: (){
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => NavigationBarScreen(currentIndex: 1)),
+            );
+          },
+          child: const Icon(
+              Icons.arrow_back_ios_rounded,
+              color: Colors.black
+          ),
+        ),
+        title: const Text(
+          'Thông tin người dùng',
+          style: TextStyle(
+              fontFamily: 'Nunito Sans',
+              fontSize: 22,
+              fontWeight: FontWeight.bold,
+              color: Colors.black),
+        ),
+        elevation: 0,
+      ),
+      body: Padding(
+        padding: const EdgeInsets.fromLTRB(30,20,30,100),
+        child:
+        Column(
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: [
+            Expanded(
+              child: ListView.builder(
+                  itemCount: 5,
+                  itemBuilder: (context,index){
+                return contentListUser();
+              }),
+            ),
+
+            Padding(
+                padding: const EdgeInsets.fromLTRB(30,20,30,0),
+                child: ButtonNext(onTap: (){},textInside: "Thêm người dùng",color: Colors.orange,))
+          ],
+        ),
+      ),
+    ));
+  }
+  Widget contentListUser(){
+    return GestureDetector(
+      onTap: (){
+        Navigator.pushNamed(
+          context,
+          InfoUserScreen.routeName,
+        );
+      },
+      child: Container(
+        width: MediaQuery.of(context).size.width,
+        height: 65,
+        color: const Color(0xFFFFCC99),
+        margin: const EdgeInsets.only(bottom: 20),
+        padding: const EdgeInsets.only(left: 20),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const Text(
+              'Người dùng 1',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                  fontFamily: 'Nunito Sans',
+                  fontSize: 20,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.black),
+            ),
+            Container(
+              width: 90,
+              margin: const EdgeInsets.only(right: 10),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  SizedBox(
+                    width: 50,
+                    height: 50,
+                    child: ClipOval(
+                      child: Image.asset(ImageAssets.imgMeo),
+                    ),
+                  ),
+                  const Icon(Icons.arrow_forward_ios_outlined)
+                ],
+              ),
+            )
+          ],
+        ),
+      ),
+    );
+  }
+}
