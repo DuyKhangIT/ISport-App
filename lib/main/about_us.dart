@@ -40,7 +40,7 @@ class AboutUsScreen extends StatelessWidget {
         child: Column(
           children: [
             const Text(
-              "Thiết bị ISport được dùng để đo hiệu suất vận động của các cầu thủ trên sân bóng và thông báo về smartphone cho đội trưởng biết về hiện trạng của đội viên.\nThiết bị sẽ được cập nhật cũng như thường xuyên để cải thiện hiệu xuất đo đạc cũng như độ chính xác. ",
+              "Thiết bị ISport được dùng để đo hiệu suất vận động của các cầu thủ trên sân bóng và thông báo về smartphone cho đội trưởng biết về hiện trạng của đội viên.\nThiết bị sẽ được cập nhật thường xuyên để cải thiện hiệu xuất đo đạc cũng như độ chính xác. ",
               style: TextStyle(
                   fontFamily: 'Nunito Sans',
                   fontSize: 18,
