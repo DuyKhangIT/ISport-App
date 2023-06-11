@@ -47,7 +47,7 @@ class _SelectAgeScreenState extends State<SelectAgeScreen> {
           body: Container(
             width: MediaQuery.of(context).size.width,
             height: MediaQuery.of(context).size.height,
-            padding: const EdgeInsets.symmetric(vertical: 200, horizontal: 20),
+            padding: const EdgeInsets.symmetric(vertical: 150, horizontal: 20),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.start,
               children: [

@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -6,8 +8,13 @@ import 'package:isport_app/main/navigation_bar.dart';
 import 'package:isport_app/onboarding/resgister.dart';
 
 import '../assets/icons_assets.dart';
+import '../handle_api/handle_api.dart';
+import '../model/login/login_request.dart';
+import '../model/login/login_response.dart';
 import '../until/global.dart';
 import '../until/module.dart';
+import '../until/share_preferences.dart';
+import '../until/show_loading_dialog.dart';
 import '../widget/button_next.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -25,6 +32,62 @@ class _LoginScreenState extends State<LoginScreen> {
   String passwordLogin = "";
   bool isLoading = false;
   bool isShowPassword = false;
+
+  Future<LoginResponse> loginApi(LoginRequest loginRequest) async {
+    setState(() {
+      isLoading = true;
+      if (isLoading) {
+        IsShowDialog().showLoadingDialog(context);
+      } else {
+        Navigator.of(context).pop();
+      }
+    });
+    LoginResponse loginResponse;
+    Map<String, dynamic>? body;
+    try {
+      body = await HttpHelper.invokeHttp(
+          Uri.parse("http://192.168.1.10:3002/api/login"),
+          RequestType.post,
+          headers: null,
+          body: const JsonEncoder().convert(loginRequest.toBodyRequest()));
+    } catch (error) {
+      debugPrint("Fail to login $error");
+      rethrow;
+    }
+    if (body == null) return LoginResponse.buildDefault();
+    loginResponse = LoginResponse.fromJson(body);
+    if (loginResponse.code != 0) {
+      setState(() {
+        isLoading = false;
+        if (isLoading) {
+          IsShowDialog().showLoadingDialog(context);
+        } else {
+          Navigator.of(context).pop();
+        }
+      });
+      debugPrint("login fail");
+    } else {
+      setState(() {
+        isLoading = false;
+        if (isLoading) {
+          IsShowDialog().showLoadingDialog(context);
+        } else {
+          setState(() {
+            ConfigSharedPreferences().setStringValue(
+                SharedData.TOKEN.toString(),
+                loginResponse.dataResponseLogin!.accessToken);
+            Global.mToken = loginResponse.dataResponseLogin!.accessToken;
+            debugPrint(Global.mToken);
+          });
+          Navigator.of(context).pop();
+          debugPrint("login successfully");
+          Navigator.pushNamedAndRemoveUntil(context,  NavigationBarScreen.routeName,
+                (Route<dynamic> route) => false);
+        }
+      });
+    }
+    return loginResponse;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -61,11 +124,21 @@ class _LoginScreenState extends State<LoginScreen> {
                 child: ButtonNext(
                     color: const Color(0xFFDEB887),
                     onTap: () {
-                      Navigator.pushNamedAndRemoveUntil(
-                        context,
-                        NavigationBarScreen.routeName,
-                            (Route<dynamic> route) => false,
-                      );
+                      if(Global.isAvailableToClick()){
+                        LoginRequest loginRequest = LoginRequest(
+                            phoneLoginController.text, passwordLoginController.text);
+                        if (loginRequest.emailOrPhone.isNotEmpty &&
+                            loginRequest.password.isNotEmpty) {
+                          // if(Global().checkEmailAddress(loginRequest.emailOrPhone) == true){
+                          //   loginApi(loginRequest);
+                          // }else{
+                          //  debugPrint("Invalid email.Please try again!!");
+                          // }
+                          loginApi(loginRequest);
+                        } else {
+                          debugPrint("Please enter username and password!!");
+                        }
+                      }
                     },
                     textInside: "Đăng nhập"),
               ),

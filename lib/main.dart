@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:isport_app/onboarding/login.dart';
 import 'package:isport_app/routes/routes.dart';
 import 'package:isport_app/until/global.dart';
+
+import 'onboarding/splash_page.dart';
 
 void main() {
   runApp(const MyApp());
@@ -20,7 +21,7 @@ class MyApp extends StatelessWidget {
           scaffoldBackgroundColor: Color(Global.primaryColor)
       ),
       routes: routes,
-      initialRoute: LoginScreen.routeName,
+      initialRoute: SplashPage.routeName,
     );
   }
 }

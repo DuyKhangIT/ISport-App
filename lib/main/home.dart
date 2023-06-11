@@ -5,7 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:isport_app/assets/assets.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:isport_app/main/map.dart';
-
+import 'package:isport_app/widget/button_next.dart';
+import 'package:socket_io_client/socket_io_client.dart' as IO;
 import '../until/global.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -18,6 +19,7 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   GoogleMapController? mapController;
+  late IO.Socket socket;
   final Completer<GoogleMapController> _controller = Completer();
 
   Set<Marker> markersConsumer = {};
@@ -61,6 +63,32 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
+
+  void connectAndListenSocket(){
+    debugPrint('-------------Call function-----------------');
+    socket = IO.io('http://192.168.1.10:3002',IO.OptionBuilder()
+        .setTransports(['websocket']).build());
+
+    socket.onConnect((_) {
+      debugPrint('Connect successfully');
+    });
+
+    socket.on('connection', (_) {
+      debugPrint('Connect server');
+    });
+
+    socket.on('mysql-event', (data) {
+      debugPrint('Received message: $data');
+      //listMessage.add(MessageModel(data['senderId'], data['message'],data['timeSend']));
+    });
+  }
+
+  @override
+  void initState() {
+    connectAndListenSocket();
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
     return SafeArea(
@@ -92,7 +120,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ///
               Container(
                 width: MediaQuery.of(context).size.width,
-                height: 150,
+                height: 200,
                 margin: const EdgeInsets.all(20),
                 padding: const EdgeInsets.fromLTRB(30, 15, 30, 15),
                 decoration: BoxDecoration(
@@ -155,6 +183,38 @@ class _HomeScreenState extends State<HomeScreen> {
                               borderRadius: BorderRadius.circular(10)),
                           child: const Text(
                             '1000',
+                            overflow: TextOverflow.ellipsis,
+                            maxLines: 1,
+                            style: TextStyle(
+                                fontFamily: 'Nunito Sans',
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black),
+                          ),
+                        ),
+                        const Text(
+                          'm/s',
+                          style: TextStyle(
+                              fontFamily: 'Nunito Sans',
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black),
+                        ),
+                      ],
+                    ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Image.asset(IconsAssets.icHeartRate,width: 30,height: 30),
+                        Container(
+                          alignment: Alignment.center,
+                          constraints: const BoxConstraints(maxWidth: 150),
+                          padding: const EdgeInsets.all(5),
+                          decoration: BoxDecoration(
+                              border: Border.all(color: Colors.black),
+                              borderRadius: BorderRadius.circular(10)),
+                          child: const Text(
+                            '142',
                             overflow: TextOverflow.ellipsis,
                             maxLines: 1,
                             style: TextStyle(
@@ -426,6 +486,12 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ),
                 ),
+              ),
+
+              /// clear data
+              Padding(
+                padding: const EdgeInsets.fromLTRB(30,40,30,0),
+                child: ButtonNext(onTap: (){},textInside: "Xóa dữ liệu",color: Colors.orange,),
               )
             ],
           ),

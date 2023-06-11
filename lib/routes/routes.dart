@@ -12,12 +12,14 @@ import 'package:isport_app/main/user_info_function/select_age.dart';
 import 'package:isport_app/main/user_info_function/select_height.dart';
 import 'package:isport_app/onboarding/login.dart';
 import 'package:isport_app/onboarding/resgister.dart';
+import 'package:isport_app/onboarding/splash_page.dart';
 
 import '../main/user_info_function/avatar_user.dart';
 import '../main/navigation_bar.dart';
 import '../main/user_info_function/select_weight.dart';
 
 final Map<String,WidgetBuilder> routes = {
+  SplashPage.routeName: (context) =>  const SplashPage(),
   LoginScreen.routeName: (context) =>  const LoginScreen(),
   RegisterScreen.routeName: (context) =>  const RegisterScreen(),
   NavigationBarScreen.routeName: (context) =>  NavigationBarScreen(),
