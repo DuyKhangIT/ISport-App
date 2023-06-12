@@ -53,6 +53,44 @@ class _InfoUserScreenState extends State<InfoUserScreen> {
         padding: const EdgeInsets.symmetric(horizontal: 30),
         child: Column(
           children: [
+            /// id
+            Container(
+              width: MediaQuery.of(context).size.width,
+              height: 70,
+              color: const Color(0xFFFFCC99),
+              margin: const EdgeInsets.only(bottom: 10),
+              padding: const EdgeInsets.only(left: 20),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    'Mã',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                        fontFamily: 'Nunito Sans',
+                        fontSize: 20,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.black),
+                  ),
+                  Container(
+                    constraints: const BoxConstraints(maxWidth: 200),
+                    margin: const EdgeInsets.only(right: 20),
+                    child: const Text(
+                      '1900',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                          fontFamily: 'Nunito Sans',
+                          fontSize: 20,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.black),
+                    ),
+                  )
+                ],
+              ),
+            ),
+
             /// avt
             GestureDetector(
               onTap: (){

@@ -1,11 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:isport_app/routes/routes.dart';
 import 'package:isport_app/until/global.dart';
+import 'package:network_info_plus/network_info_plus.dart';
 
+import 'main/account_info.dart';
 import 'onboarding/splash_page.dart';
 
-void main() {
+void main() async {
   runApp(const MyApp());
+
+  final info = NetworkInfo();
+  final wifiName = await info.getWifiName();
+  final wifiIPv4 = await info.getWifiIP();
+  debugPrint(wifiName.toString());
+  debugPrint(wifiIPv4.toString());
+
 }
 
 class MyApp extends StatelessWidget {
@@ -21,7 +30,7 @@ class MyApp extends StatelessWidget {
           scaffoldBackgroundColor: Color(Global.primaryColor)
       ),
       routes: routes,
-      initialRoute: SplashPage.routeName,
+      initialRoute: AccountInfoScreen.routeName,
     );
   }
 }
