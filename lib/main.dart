@@ -3,7 +3,6 @@ import 'package:isport_app/routes/routes.dart';
 import 'package:isport_app/until/global.dart';
 import 'package:network_info_plus/network_info_plus.dart';
 
-import 'main/account_info.dart';
 import 'onboarding/splash_page.dart';
 
 void main() async {
@@ -30,7 +29,7 @@ class MyApp extends StatelessWidget {
           scaffoldBackgroundColor: Color(Global.primaryColor)
       ),
       routes: routes,
-      initialRoute: AccountInfoScreen.routeName,
+      initialRoute: SplashPage.routeName,
     );
   }
 }

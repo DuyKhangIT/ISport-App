@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:isport_app/main/home.dart';
 import 'package:isport_app/main/navigation_bar.dart';
 import 'package:isport_app/onboarding/resgister.dart';
@@ -26,9 +27,9 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  TextEditingController phoneLoginController = TextEditingController();
+  TextEditingController emailOrPhoneLoginController = TextEditingController();
   TextEditingController passwordLoginController = TextEditingController();
-  String phoneLogin = "";
+  String emailOrPhoneLogin = "";
   String passwordLogin = "";
   bool isLoading = false;
   bool isShowPassword = false;
@@ -64,9 +65,25 @@ class _LoginScreenState extends State<LoginScreen> {
         } else {
           Navigator.of(context).pop();
         }
+        Fluttertoast.showToast(
+            msg: "Tài khoản hoặc mật khẩu không chính xác!!",
+            toastLength: Toast.LENGTH_SHORT,
+            gravity: ToastGravity.BOTTOM,
+            timeInSecForIosWeb: 5,
+            backgroundColor: Colors.red,
+            textColor: Colors.white,
+            fontSize: 16);
       });
       debugPrint("login fail");
     } else {
+      Fluttertoast.showToast(
+          msg: "Đăng nhập thành công",
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.BOTTOM,
+          timeInSecForIosWeb: 1,
+          backgroundColor: Colors.orange,
+          textColor: Colors.black,
+          fontSize: 16);
       setState(() {
         isLoading = false;
         if (isLoading) {
@@ -126,17 +143,19 @@ class _LoginScreenState extends State<LoginScreen> {
                     onTap: () {
                       if(Global.isAvailableToClick()){
                         LoginRequest loginRequest = LoginRequest(
-                            phoneLoginController.text, passwordLoginController.text);
+                            emailOrPhoneLoginController.text, passwordLoginController.text);
                         if (loginRequest.emailOrPhone.isNotEmpty &&
                             loginRequest.password.isNotEmpty) {
-                          // if(Global().checkEmailAddress(loginRequest.emailOrPhone) == true){
-                          //   loginApi(loginRequest);
-                          // }else{
-                          //  debugPrint("Invalid email.Please try again!!");
-                          // }
                           loginApi(loginRequest);
                         } else {
-                          debugPrint("Please enter username and password!!");
+                          Fluttertoast.showToast(
+                              msg: "Vui lòng nhập đủ thông tin",
+                              toastLength: Toast.LENGTH_SHORT,
+                              gravity: ToastGravity.BOTTOM,
+                              timeInSecForIosWeb: 3,
+                              backgroundColor: Colors.orange,
+                              textColor: Colors.black,
+                              fontSize: 16);
                         }
                       }
                     },
@@ -184,7 +203,7 @@ class _LoginScreenState extends State<LoginScreen> {
             margin: const EdgeInsets.symmetric(vertical: 15),
             padding: const EdgeInsets.only(left: 16, right: 10),
             child: TextField(
-              controller: phoneLoginController,
+              controller: emailOrPhoneLoginController,
               keyboardType: TextInputType.text,
               cursorColor: Colors.grey,
               decoration: InputDecoration(
@@ -200,7 +219,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 focusedBorder: InputBorder.none,
                 enabledBorder: InputBorder.none,
                 counterText: '',
-                suffixIcon: (phoneLoginController.text.isEmpty)
+                suffixIcon: (emailOrPhoneLoginController.text.isEmpty)
                     ? const SizedBox()
                     : GestureDetector(
                   onTap: () {
@@ -219,7 +238,7 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
               onChanged: (value) {
                 setState(() {
-                  phoneLogin = value;
+                  emailOrPhoneLogin = value;
                 });
               },
               style: TextStyle(

@@ -2,11 +2,15 @@ import 'dart:async';
 
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:isport_app/assets/assets.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:isport_app/main/map.dart';
 import 'package:isport_app/widget/button_next.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
+import '../handle_api/handle_api.dart';
+import '../model/list_device_user/data_list_device_user_response.dart';
+import '../model/list_device_user/list_device_user_response.dart';
 import '../until/global.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -21,7 +25,8 @@ class _HomeScreenState extends State<HomeScreen> {
   GoogleMapController? mapController;
   late IO.Socket socket;
   final Completer<GoogleMapController> _controller = Completer();
-
+  List<DataListDeviceUserResponse> listDeviceUser = [];
+  bool isLoading = false;
   Set<Marker> markersConsumer = {};
   CameraPosition kLake =
       const CameraPosition(target: LatLng(10.9501542, 106.6707032), zoom: 16);
@@ -38,17 +43,16 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void showMemberMenu() async {
-    final List<String> popList = ['Thiết bị 1', 'Thiết bị 2', 'Thiết bị 3','Thiết bị 4','Thiết bị 5'];
     await showMenu(
       context: context,
       position: const RelativeRect.fromLTRB(20, 80, 100, 0),
       color: Colors.orange,
       items: List.generate(
-        popList.length,
+        listDeviceUser.length,
             (index) => PopupMenuItem(
           value: index,
           child: Text(
-            popList[index],
+            listDeviceUser[index].name,
             style: const TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
@@ -79,14 +83,48 @@ class _HomeScreenState extends State<HomeScreen> {
 
     socket.on('mysql-event', (data) {
       debugPrint('Received message: $data');
-      //listMessage.add(MessageModel(data['senderId'], data['message'],data['timeSend']));
+      getListDeviceUSer();
     });
   }
 
   @override
   void initState() {
     connectAndListenSocket();
+    getListDeviceUSer();
     super.initState();
+  }
+
+  /// list device user
+  Future<ListDeviceUserResponse> getListDeviceUSer() async {
+    ListDeviceUserResponse listDeviceUserResponse;
+    Map<String, dynamic>? body;
+    try {
+      body = await HttpHelper.invokeHttp(
+          Uri.parse("http://192.168.1.10:3002/api/user/devices"),
+          RequestType.get,
+          headers: null,
+          body: null);
+    } catch (error) {
+      debugPrint("Fail to list device user $error");
+      rethrow;
+    }
+    if (body == null) return ListDeviceUserResponse.buildDefault();
+    //get data from api here
+    listDeviceUserResponse = ListDeviceUserResponse.fromJson(body);
+    if(listDeviceUserResponse.code == 0){
+      listDeviceUser = listDeviceUserResponse.listDataDeviceUser;
+      debugPrint("get list device successfully");
+    }else{
+     Fluttertoast.showToast(
+         msg: "Lỗi server",
+         toastLength: Toast.LENGTH_SHORT,
+         gravity: ToastGravity.BOTTOM,
+         timeInSecForIosWeb: 1,
+         backgroundColor: Colors.orange,
+         textColor: Colors.black,
+         fontSize: 16);
+    }
+    return listDeviceUserResponse;
   }
 
   @override

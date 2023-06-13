@@ -1,9 +1,16 @@
+import 'dart:convert';
+
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:isport_app/onboarding/login.dart';
 import 'package:isport_app/widget/button_next.dart';
 
+import '../handle_api/handle_api.dart';
+import '../model/register/register_request.dart';
+import '../model/register/register_response.dart';
 import '../until/global.dart';
+import '../until/show_loading_dialog.dart';
 
 class RegisterScreen extends StatefulWidget {
   static String routeName = "/register";
@@ -27,6 +34,72 @@ class _RegisterScreenState extends State<RegisterScreen> {
   bool isShowPassword = false;
   bool isShowConfirmPassword = false;
   bool isLoading = false;
+
+  /// call api register
+  Future<RegisterResponse> registerApi(RegisterRequest registerRequest) async {
+    setState(() {
+      isLoading = true;
+      if (isLoading) {
+        IsShowDialog().showLoadingDialog(context);
+      } else {
+        Navigator.of(context).pop();
+      }
+    });
+    RegisterResponse registerResponse;
+    Map<String, dynamic>? body;
+    try {
+      body = await HttpHelper.invokeHttp(
+          Uri.parse(
+              "http://192.168.1.10:3002/api/register"),
+          RequestType.post,
+          headers: null,
+          body: const JsonEncoder().convert(registerRequest.toBodyRequest()));
+    } catch (error) {
+      debugPrint("Fail to register $error");
+      rethrow;
+    }
+    if (body == null) return RegisterResponse.buildDefault();
+    registerResponse = RegisterResponse.fromJson(body);
+    if (registerResponse.code != 0) {
+      setState(() {
+        isLoading = false;
+        if (isLoading) {
+          IsShowDialog().showLoadingDialog(context);
+        } else {
+          Navigator.of(context).pop();
+        }
+        Fluttertoast.showToast(
+            msg: "Đăng kí không thành công!",
+            toastLength: Toast.LENGTH_SHORT,
+            gravity: ToastGravity.BOTTOM,
+            timeInSecForIosWeb: 3,
+            backgroundColor: Colors.red,
+            textColor: Colors.white,
+            fontSize: 16);
+      });
+    } else {
+      setState(() {
+        isLoading = false;
+        if (isLoading) {
+          IsShowDialog().showLoadingDialog(context);
+        } else {
+          Navigator.of(context).pop();
+          Fluttertoast.showToast(
+              msg: "Đăng ký thành công",
+              toastLength: Toast.LENGTH_SHORT,
+              gravity: ToastGravity.BOTTOM,
+              timeInSecForIosWeb: 3,
+              backgroundColor: Colors.orange,
+              textColor: Colors.black,
+              fontSize: 16);
+          Navigator.pushNamedAndRemoveUntil(
+              context, LoginScreen.routeName, (Route<dynamic> route) => false);
+        }
+      });
+    }
+    return registerResponse;
+  }
+
   @override
   Widget build(BuildContext context) {
     return SafeArea(
@@ -74,7 +147,51 @@ class _RegisterScreenState extends State<RegisterScreen> {
           fullNameTextField(),
 
           /// button
-          ButtonNext(onTap: (){},textInside: "Tạo tài khoản",  color: const Color(0xFFDEB887)),
+          ButtonNext(onTap: (){
+            setState(() {
+              if (Global.isAvailableToClick()) {
+                RegisterRequest registerRequest = RegisterRequest(email, phoneNumber,password,fullName);
+                if (emailController.text.isNotEmpty &&
+                    passwordController.text.isNotEmpty &&
+                    confirmController.text.isNotEmpty && fullNameController.text.isNotEmpty) {
+                  if (Global().checkEmailAddress(email) == true) {
+                    if (passwordController.text == confirmController.text) {
+                      registerApi(registerRequest);
+                    } else {
+                      Fluttertoast.showToast(
+                          msg:
+                          "Mật khẩu xác nhận chưa trùng với mật khẩu của bạn  ",
+                          toastLength: Toast.LENGTH_SHORT,
+                          gravity: ToastGravity.BOTTOM,
+                          timeInSecForIosWeb: 3,
+                          backgroundColor: Colors.red,
+                          textColor: Colors.white,
+                          fontSize: 16);
+                    }
+                  } else {
+                    Fluttertoast.showToast(
+                        msg: "Định dạng email không hợp lệ. Vui lòng nhập lại",
+                        toastLength: Toast.LENGTH_SHORT,
+                        gravity: ToastGravity.BOTTOM,
+                        timeInSecForIosWeb: 3,
+                        backgroundColor: Colors.red,
+                        textColor: Colors.white,
+                        fontSize: 16);
+                  }
+                } else {
+                  Fluttertoast.showToast(
+                      msg: "Vui lòng nhập đủ thông tin",
+                      toastLength: Toast.LENGTH_SHORT,
+                      gravity: ToastGravity.BOTTOM,
+                      timeInSecForIosWeb: 3,
+                      backgroundColor: Colors.red,
+                      textColor: Colors.white,
+                      fontSize: 16);
+                }
+              }
+            });
+
+          },textInside: "Tạo tài khoản",  color: const Color(0xFFDEB887)),
 
           /// login
           Padding(

@@ -52,12 +52,13 @@ class _SplashPageState extends State<SplashPage> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: const [
               CircularProgressIndicator(
-                backgroundColor: Colors.white,
+                backgroundColor: Colors.orangeAccent,
                 strokeWidth: 5,
+                color: Colors.black,
               ),
               SizedBox(height: 15),
               Text('loading...', style: TextStyle(
-                  color: Colors.white,
+                  color: Colors.black,
                   fontWeight: FontWeight.bold,
                   fontSize: 18
               )),
@@ -76,7 +77,7 @@ class _SplashPageState extends State<SplashPage> {
                 child: const Text('ISport',
                     style: TextStyle(
                         fontSize: 40,
-                        color: Colors.white,
+                        color: Colors.black,
                         fontWeight: FontWeight.bold)),
               ),
 
@@ -99,7 +100,7 @@ class _SplashPageState extends State<SplashPage> {
                           left: 20, right: 20, bottom: 30),
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(20),
-                        color: Colors.white,
+                        color: Colors.orangeAccent,
                       ),
                       child:  Text(
                         'Bắt đầu'.toUpperCase(),
