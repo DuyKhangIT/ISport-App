@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:isport_app/onboarding/login.dart';
 
 import '../main/navigation_bar.dart';
+import '../until/global.dart';
 import '../until/share_preferences.dart';
 
 
@@ -30,12 +31,14 @@ class _SplashPageState extends State<SplashPage> {
         isNewUser = true;
       });
     } else {
+      Global.mToken = userId;
       loadData();
     }
   }
   Future<void> loadData() async {
     await Future.delayed(const Duration(seconds: 3));
     setState(() {
+      isNewUser = false;
       Navigator.pushNamedAndRemoveUntil(context, NavigationBarScreen.routeName, (Route<dynamic> route) => false);
     });
   }

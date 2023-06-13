@@ -123,6 +123,7 @@ class _HomeScreenState extends State<HomeScreen> {
          backgroundColor: Colors.orange,
          textColor: Colors.black,
          fontSize: 16);
+     debugPrint(listDeviceUserResponse.message);
     }
     return listDeviceUserResponse;
   }

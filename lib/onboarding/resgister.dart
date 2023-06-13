@@ -76,6 +76,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
             backgroundColor: Colors.red,
             textColor: Colors.white,
             fontSize: 16);
+        debugPrint(registerResponse.message);
       });
     } else {
       setState(() {

@@ -75,6 +75,7 @@ class _LoginScreenState extends State<LoginScreen> {
             fontSize: 16);
       });
       debugPrint("login fail");
+      debugPrint(loginResponse.message);
     } else {
       Fluttertoast.showToast(
           msg: "Đăng nhập thành công",
