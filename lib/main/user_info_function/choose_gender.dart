@@ -183,7 +183,7 @@ class _ChooseGenderScreenState extends State<ChooseGenderScreen> {
                   GestureDetector(
                     onTap: () {
                       setState(() {
-                        colorMaleGender = Colors.pink;
+                        colorMaleGender = Colors.orangeAccent;
                         if (colorMaleGender != null) {
                           gender = "Nam";
                           debugPrint(gender);
@@ -217,11 +217,11 @@ class _ChooseGenderScreenState extends State<ChooseGenderScreen> {
                       ],
                     ),
                   ),
-
+                  /// female gender
                   GestureDetector(
                     onTap: () {
                       setState(() {
-                        colorFemaleGender = Colors.pink;
+                        colorFemaleGender = Colors.orangeAccent;
                         if (colorFemaleGender != null) {
                           gender = "Nữ";
                           debugPrint(gender);

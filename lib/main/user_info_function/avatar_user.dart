@@ -14,6 +14,7 @@ import '../../handle_api/handle_api.dart';
 import '../../model/list_device_user/data_list_device_user_response.dart';
 import '../../model/update_device_info/update_device_info_response.dart';
 import '../../model/upload_media/upload_media_response.dart';
+import '../../until/global.dart';
 import '../../until/show_loading_dialog.dart';
 import '../list_user.dart';
 
@@ -215,7 +216,11 @@ class _AvatarUserScreenState extends State<AvatarUserScreen> {
         actions: [
           GestureDetector(
             onTap: (){
-              uploadMedia();
+              if(Global.isAvailableToClick()){
+                if(avatar!=null){
+                  uploadMedia();
+                }
+              }
             },
             child: Container(
               width: 80,

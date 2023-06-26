@@ -23,12 +23,13 @@ class AddDeviceScreen extends StatefulWidget {
 }
 
 class _AddDeviceScreenState extends State<AddDeviceScreen> {
+  Color? colorFemaleGender;
+  Color? colorMaleGender;
   File? avatar;
   String filePath = "";
   TextEditingController nickNameController = TextEditingController();
   TextEditingController fullNameController = TextEditingController();
   TextEditingController ageController = TextEditingController();
-  TextEditingController genderController = TextEditingController();
   TextEditingController heightController = TextEditingController();
   TextEditingController weightController = TextEditingController();
   String nickName = "";
@@ -52,11 +53,6 @@ class _AddDeviceScreenState extends State<AddDeviceScreen> {
   void clearTextAge() {
     age = "";
     ageController.clear();
-  }
-
-  void clearTextGender() {
-    gender = "";
-    genderController.clear();
   }
 
   void clearTextHeight() {
@@ -245,7 +241,7 @@ class _AddDeviceScreenState extends State<AddDeviceScreen> {
               Container(
                 width: MediaQuery.of(context).size.width,
                 margin: const EdgeInsets.only(top: 20),
-                child: const Text('Nhập giới tính của bạn(*)',
+                child: const Text('Chọn giới tính của bạn(*)',
                     style: TextStyle(
                       fontSize: 16,
                       fontFamily: 'Nunito Sans',
@@ -253,7 +249,93 @@ class _AddDeviceScreenState extends State<AddDeviceScreen> {
                     ),
                     textAlign: TextAlign.left),
               ),
-              textFieldGender(),
+              /// gender
+              Container(
+                width: MediaQuery.of(context).size.width,
+                margin: const EdgeInsets.fromLTRB(20,20,20,0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                    /// male gender
+                    GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          colorMaleGender = Colors.orangeAccent;
+                          if (colorMaleGender != null) {
+                            gender = "Nam";
+                            debugPrint(gender);
+                            colorFemaleGender = null;
+                          }
+                        });
+                      },
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        children: [
+                          Container(
+                            width: 60,
+                            height: 60,
+                            padding: const EdgeInsets.all(18),
+                            margin: const EdgeInsets.only(bottom: 10),
+                            decoration: BoxDecoration(
+                                color: colorMaleGender ??
+                                    Colors.grey.withOpacity(0.6),
+                                shape: BoxShape.circle),
+                            child: Image.asset(
+                              IconsAssets.icMaleGender,
+                              color: Colors.white,
+                            ),
+                          ),
+                          Text('Nam',
+                              style: TextStyle(
+                                  fontSize: 16,
+                                  fontFamily: 'Nunito Sans',
+                                  fontWeight: FontWeight.bold,
+                                  color: colorMaleGender ?? Colors.white54)),
+                        ],
+                      ),
+                    ),
+                    /// female gender
+                    GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          colorFemaleGender = Colors.orangeAccent;
+                          if (colorFemaleGender != null) {
+                            gender = "Nữ";
+                            debugPrint(gender);
+                            colorMaleGender = null;
+                          }
+                        });
+                      },
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        children: [
+                          Container(
+                            width: 60,
+                            height: 60,
+                            margin: const EdgeInsets.only(bottom: 10),
+                            padding: const EdgeInsets.all(18),
+                            decoration: BoxDecoration(
+                                color: colorFemaleGender ??
+                                    Colors.grey.withOpacity(0.6),
+                                shape: BoxShape.circle),
+                            child: Image.asset(
+                              IconsAssets.icFemaleGender,
+                              color: Colors.white,
+                            ),
+                          ),
+                          Text('Nữ',
+                              style: TextStyle(
+                                  fontSize: 16,
+                                  fontFamily: 'Nunito Sans',
+                                  fontWeight: FontWeight.bold,
+                                  color: colorFemaleGender ?? Colors.white54)),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
               Container(
                 width: MediaQuery.of(context).size.width,
                 margin: const EdgeInsets.only(top: 20),
@@ -481,64 +563,6 @@ class _AddDeviceScreenState extends State<AddDeviceScreen> {
         onChanged: (value) {
           setState(() {
             age = value;
-          });
-        },
-        style: TextStyle(
-            color: Theme.of(context).brightness == Brightness.dark
-                ? Colors.white
-                : Colors.black,
-            fontFamily: 'NunitoSans',
-            fontSize: 14,
-            fontStyle: FontStyle.normal,
-            fontWeight: FontWeight.w600,
-            height: 1.9),
-      ),
-    );
-  }
-
-  Widget textFieldGender() {
-    return Container(
-      width: double.infinity,
-      height: 50,
-      decoration: BoxDecoration(
-        border: Border.all(color: Colors.grey),
-        borderRadius: BorderRadius.circular(6),
-      ),
-      margin: const EdgeInsets.only(top: 10),
-      padding: const EdgeInsets.only(left: 16, right: 10),
-      child: TextField(
-        controller: genderController,
-        keyboardType: TextInputType.text,
-        cursorColor: Colors.grey,
-        decoration: InputDecoration(
-            isDense: true,
-            hintText: 'Giới tính của bạn',
-            hintStyle: const TextStyle(
-              fontFamily: 'NunitoSans',
-              fontStyle: FontStyle.normal,
-              fontWeight: FontWeight.w400,
-              fontSize: 14,
-            ),
-            border: InputBorder.none,
-            focusedBorder: InputBorder.none,
-            enabledBorder: InputBorder.none,
-            counterText: '',
-            suffixIcon: (genderController.text.isEmpty)
-                ? const SizedBox()
-                : GestureDetector(
-                    onTap: () {
-                      clearTextGender();
-                    },
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      child: Image.asset(
-                        IconsAssets.icClearText,
-                      ),
-                    ),
-                  )),
-        onChanged: (value) {
-          setState(() {
-            gender = value;
           });
         },
         style: TextStyle(

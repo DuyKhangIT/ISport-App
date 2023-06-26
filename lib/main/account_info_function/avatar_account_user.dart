@@ -1,14 +1,22 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:isport_app/model/update_account_info/update_account_info_request/update_avt_device_info_request.dart';
 import 'package:isport_app/widget/button_next.dart';
 
 import '../../assets/icons_assets.dart';
 import '../../handle_api/handle_api.dart';
+import '../../model/account_info/account_info_response.dart';
+import '../../model/update_account_info/update_account_info_response.dart';
 import '../../model/upload_media/upload_media_response.dart';
+import '../../until/global.dart';
+import '../../until/show_loading_dialog.dart';
+import '../account_info.dart';
 
 class AvatarAccountUserScreen extends StatefulWidget {
   static String routeName = "/avatar_account_user_screen";
@@ -22,6 +30,7 @@ class _AvatarAccountUserScreenState extends State<AvatarAccountUserScreen> {
   File? avatar;
   String filePath = "";
   String photoPath = "";
+  bool isLoading = false;
 
   /// instantiate our image picker object
   final imagePicker = ImagePicker();
@@ -77,36 +86,147 @@ class _AvatarAccountUserScreenState extends State<AvatarAccountUserScreen> {
   }
 
 
-  // /// upload image api
-  // Future<UploadMediaResponse> uploadMedia() async {
-  //   UploadMediaResponse uploadMediaResponse;
-  //   Map<String, dynamic>? body;
-  //   try {
-  //     body = await HttpHelper.invokeSingleFile(
-  //         Uri.parse(
-  //             "http://192.168.1.7:3002/api/upload-media?iddevice=${widget.dataDeviceUser!.idDevice}"),
-  //         RequestType.post,
-  //         filePath,
-  //         headers: null,
-  //         body: null);
-  //   } catch (error) {
-  //     debugPrint("Fail to upload file ${(error)}");
-  //     rethrow;
-  //   }
-  //   if (body == null) return UploadMediaResponse.buildDefault();
-  //   uploadMediaResponse = UploadMediaResponse.fromJson(body);
-  //   if (uploadMediaResponse.code == 0) {
-  //     setState(() {
-  //       photoPath = uploadMediaResponse.data!;
-  //       debugPrint("Upload Media successfully");
-  //       if (photoPath.isNotEmpty) {
-  //       }
-  //     });
-  //   } else {
-  //     debugPrint("Upload Fail: ${uploadMediaResponse.message}");
-  //   }
-  //   return uploadMediaResponse;
-  // }
+  /// upload image api
+  Future<UploadMediaResponse> uploadMedia() async {
+    UploadMediaResponse uploadMediaResponse;
+    Map<String, dynamic>? body;
+    try {
+      body = await HttpHelper.invokeSingleFile(
+          Uri.parse(
+              "http://192.168.1.7:3002/api/upload-media"),
+          RequestType.post,
+          filePath,
+          headers: null,
+          body: null);
+    } catch (error) {
+      debugPrint("Fail to upload file ${(error)}");
+      rethrow;
+    }
+    if (body == null) return UploadMediaResponse.buildDefault();
+    uploadMediaResponse = UploadMediaResponse.fromJson(body);
+    if (uploadMediaResponse.code == 0) {
+      setState(() {
+        photoPath = uploadMediaResponse.data!;
+        debugPrint("Upload Media successfully");
+        if (photoPath.isNotEmpty) {
+          UpdateAvtAccountInfoRequest updateAvtAccountInfoRequest = UpdateAvtAccountInfoRequest(photoPath);
+          updateFullNameAccountInfoApi(updateAvtAccountInfoRequest);
+        }
+      });
+    } else {
+      debugPrint("Upload Fail: ${uploadMediaResponse.message}");
+    }
+    return uploadMediaResponse;
+  }
+
+  /// call api update device
+  Future<UpdateAccountInfoResponse> updateFullNameAccountInfoApi(
+      UpdateAvtAccountInfoRequest updateAvtAccountInfoRequest) async {
+    setState(() {
+      isLoading = true;
+      if (isLoading) {
+        IsShowDialog().showLoadingDialog(context);
+      } else {
+        Navigator.of(context).pop();
+      }
+    });
+    UpdateAccountInfoResponse updateAccountInfoResponse;
+    Map<String, dynamic>? body;
+    try {
+      body = await HttpHelper.invokeHttp(
+          Uri.parse(
+              "http://192.168.1.7:3002/api/user/update"),
+          RequestType.post,
+          headers: null,
+          body: const JsonEncoder()
+              .convert(updateAvtAccountInfoRequest.toBodyRequest()));
+    } catch (error) {
+      debugPrint("Fail to update avt account info $error");
+      rethrow;
+    }
+    if (body == null) return UpdateAccountInfoResponse.buildDefault();
+    updateAccountInfoResponse = UpdateAccountInfoResponse.fromJson(body);
+    if (updateAccountInfoResponse.code != 0) {
+      setState(() {
+        isLoading = false;
+        if (isLoading) {
+          IsShowDialog().showLoadingDialog(context);
+        } else {
+          Navigator.of(context).pop();
+        }
+        Fluttertoast.showToast(
+            msg: "Cập nhật ảnh đại diện không thành công!",
+            toastLength: Toast.LENGTH_SHORT,
+            gravity: ToastGravity.BOTTOM,
+            timeInSecForIosWeb: 5,
+            backgroundColor: Colors.red,
+            textColor: Colors.white,
+            fontSize: 16);
+        debugPrint(updateAccountInfoResponse.message);
+      });
+    } else {
+      setState(() {
+        isLoading = false;
+        if (isLoading) {
+          IsShowDialog().showLoadingDialog(context);
+        } else {
+          Navigator.of(context).pop();
+          Fluttertoast.showToast(
+              msg: "Cập nhật ảnh đại diện thành công",
+              toastLength: Toast.LENGTH_SHORT,
+              gravity: ToastGravity.BOTTOM,
+              timeInSecForIosWeb: 5,
+              backgroundColor: Colors.orange,
+              textColor: Colors.black,
+              fontSize: 16);
+          getAccountInfo();
+
+        }
+      });
+    }
+    return updateAccountInfoResponse;
+  }
+
+  /// account info
+  Future<AccountInfoResponse> getAccountInfo() async {
+    AccountInfoResponse accountInfoResponse;
+    Map<String, dynamic>? body;
+    try {
+      body = await HttpHelper.invokeHttp(
+          Uri.parse("http://192.168.1.7:3002/api/user"),
+          RequestType.get,
+          headers: null,
+          body: null);
+    } catch (error) {
+      debugPrint("Fail to get account info $error");
+      rethrow;
+    }
+    if (body == null) return AccountInfoResponse.buildDefault();
+    //get data from api here
+    accountInfoResponse = AccountInfoResponse.fromJson(body);
+    if(accountInfoResponse.code == 0){
+      setState(() {
+        Global.accountInfo = accountInfoResponse.accountInfo[0];
+        debugPrint("Get Account Info successfully");
+        debugPrint(Global.accountInfo.toString());
+        Navigator.pushNamedAndRemoveUntil(context,
+            AccountInfoScreen.routeName,(Route<dynamic> route) => false);
+      });
+
+    }else{
+      Fluttertoast.showToast(
+          msg: "Lỗi server",
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.BOTTOM,
+          timeInSecForIosWeb: 1,
+          backgroundColor: Colors.orange,
+          textColor: Colors.black,
+          fontSize: 16);
+      debugPrint(accountInfoResponse.message);
+
+    }
+    return accountInfoResponse;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -127,14 +247,32 @@ class _AvatarAccountUserScreenState extends State<AvatarAccountUserScreen> {
               icon: const Icon(Icons.arrow_back_ios_rounded, color: Colors.black),
             ),
             actions: [
-              Container(
-                width: 80,
-                alignment: Alignment.center,
-                margin: const EdgeInsets.only(right: 15,top: 10,bottom: 10),
-                child: const Text(
-                  'Cập nhật',
-                  style: TextStyle(
-                      color: Colors.black, fontWeight: FontWeight.bold, fontSize: 16),
+              GestureDetector(
+                onTap: (){
+                  if(Global.isAvailableToClick()){
+                    if(avatar !=null){
+                      uploadMedia();
+                    }else{
+                      Fluttertoast.showToast(
+                          msg: "Vui lòng chọn hình",
+                          toastLength: Toast.LENGTH_SHORT,
+                          gravity: ToastGravity.BOTTOM,
+                          timeInSecForIosWeb: 1,
+                          backgroundColor: Colors.red,
+                          textColor: Colors.black,
+                          fontSize: 16);
+                    }
+                  }
+                },
+                child: Container(
+                  width: 80,
+                  alignment: Alignment.center,
+                  margin: const EdgeInsets.only(right: 15,top: 10,bottom: 10),
+                  child: const Text(
+                    'Cập nhật',
+                    style: TextStyle(
+                        color: Colors.black, fontWeight: FontWeight.bold, fontSize: 16),
+                  ),
                 ),
               ),
             ],
