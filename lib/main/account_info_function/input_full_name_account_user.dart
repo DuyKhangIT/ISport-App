@@ -1,6 +1,16 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:isport_app/main/account_info.dart';
+import 'package:isport_app/model/update_account_info/update_account_info_request/update_full_name_device_info_request.dart';
+import 'package:isport_app/model/update_account_info/update_account_info_response.dart';
 
 import '../../assets/icons_assets.dart';
+import '../../handle_api/handle_api.dart';
+import '../../model/account_info/account_info_response.dart';
+import '../../until/global.dart';
+import '../../until/show_loading_dialog.dart';
 
 class InputFullNameAccountUserScreen extends StatefulWidget {
   static String routeName = "/input_full_name_account_screen_screen";
@@ -13,10 +23,121 @@ class InputFullNameAccountUserScreen extends StatefulWidget {
 class _InputFullNameAccountUserScreenState extends State<InputFullNameAccountUserScreen> {
   TextEditingController fullNameController = TextEditingController();
   String fullName = "";
+  bool isLoading = false;
 
   void clearTextFullName() {
     fullName = "";
     fullNameController.clear();
+  }
+
+  /// call api update device
+  Future<UpdateAccountInfoResponse> updateFullNameAccountInfoApi(
+      UpdateFullNameAccountInfoRequest updateFullNameAccountInfoRequest) async {
+    setState(() {
+      isLoading = true;
+      if (isLoading) {
+        IsShowDialog().showLoadingDialog(context);
+      } else {
+        Navigator.of(context).pop();
+      }
+    });
+    UpdateAccountInfoResponse updateAccountInfoResponse;
+    Map<String, dynamic>? body;
+    try {
+      body = await HttpHelper.invokeHttp(
+          Uri.parse(
+              "http://192.168.1.7:3002/api/user/update"),
+          RequestType.post,
+          headers: null,
+          body: const JsonEncoder()
+              .convert(updateFullNameAccountInfoRequest.toBodyRequest()));
+    } catch (error) {
+      debugPrint("Fail to update full name account info $error");
+      rethrow;
+    }
+    if (body == null) return UpdateAccountInfoResponse.buildDefault();
+    updateAccountInfoResponse = UpdateAccountInfoResponse.fromJson(body);
+    if (updateAccountInfoResponse.code != 0) {
+      setState(() {
+        isLoading = false;
+        if (isLoading) {
+          IsShowDialog().showLoadingDialog(context);
+        } else {
+          Navigator.of(context).pop();
+        }
+        Fluttertoast.showToast(
+            msg: "Cập nhật tên không thành công!",
+            toastLength: Toast.LENGTH_SHORT,
+            gravity: ToastGravity.BOTTOM,
+            timeInSecForIosWeb: 5,
+            backgroundColor: Colors.red,
+            textColor: Colors.white,
+            fontSize: 16);
+        debugPrint(updateAccountInfoResponse.message);
+      });
+    } else {
+      setState(() {
+        isLoading = false;
+        if (isLoading) {
+          IsShowDialog().showLoadingDialog(context);
+        } else {
+          Navigator.of(context).pop();
+          Fluttertoast.showToast(
+              msg: "Cập nhật tên thành công",
+              toastLength: Toast.LENGTH_SHORT,
+              gravity: ToastGravity.BOTTOM,
+              timeInSecForIosWeb: 5,
+              backgroundColor: Colors.orange,
+              textColor: Colors.black,
+              fontSize: 16);
+          getAccountInfo();
+
+        }
+      });
+    }
+    return updateAccountInfoResponse;
+  }
+
+
+  /// account info
+  Future<AccountInfoResponse> getAccountInfo() async {
+    AccountInfoResponse accountInfoResponse;
+    Map<String, dynamic>? body;
+    try {
+      body = await HttpHelper.invokeHttp(
+          Uri.parse("http://192.168.1.7:3002/api/user"),
+          RequestType.get,
+          headers: null,
+          body: null);
+    } catch (error) {
+      debugPrint("Fail to get account info $error");
+      rethrow;
+    }
+    if (body == null) return AccountInfoResponse.buildDefault();
+    //get data from api here
+    accountInfoResponse = AccountInfoResponse.fromJson(body);
+    if(accountInfoResponse.code == 0){
+     setState(() {
+       Global.accountInfo = accountInfoResponse.accountInfo[0];
+       debugPrint("Get Account Info successfully");
+       debugPrint(Global.accountInfo.toString());
+       Navigator.pushNamedAndRemoveUntil(context,
+           AccountInfoScreen.routeName,(Route<dynamic> route) => false);
+     });
+
+    }else{
+      Fluttertoast.showToast(
+          msg: "Lỗi server",
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.BOTTOM,
+          timeInSecForIosWeb: 1,
+          backgroundColor: Colors.orange,
+          textColor: Colors.black,
+          fontSize: 16);
+      debugPrint(accountInfoResponse.message);
+
+    }
+    return accountInfoResponse;
   }
 
   @override
@@ -38,16 +159,35 @@ class _InputFullNameAccountUserScreenState extends State<InputFullNameAccountUse
           icon: const Icon(Icons.arrow_back_ios_rounded, color: Colors.black),
         ),
         actions: [
-          Container(
-            width: 80,
-            alignment: Alignment.center,
-            margin: const EdgeInsets.only(right: 15, top: 10, bottom: 10),
-            child: const Text(
-              'Cập nhật',
-              style: TextStyle(
-                  color: Colors.black,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16),
+          GestureDetector(
+            onTap: (){
+              if(Global.isAvailableToClick()){
+                if(fullName.isNotEmpty){
+                  UpdateFullNameAccountInfoRequest updateFullNameAccountRequest = UpdateFullNameAccountInfoRequest(fullName);
+                  updateFullNameAccountInfoApi(updateFullNameAccountRequest);
+                }else{
+                  Fluttertoast.showToast(
+                      msg: "Vui lòng điền tên bạn muốn đổi!",
+                      toastLength: Toast.LENGTH_SHORT,
+                      gravity: ToastGravity.BOTTOM,
+                      timeInSecForIosWeb: 5,
+                      backgroundColor: Colors.red,
+                      textColor: Colors.white,
+                      fontSize: 16);
+                }
+              }
+            },
+            child: Container(
+              width: 80,
+              alignment: Alignment.center,
+              margin: const EdgeInsets.only(right: 15, top: 10, bottom: 10),
+              child: const Text(
+                'Cập nhật',
+                style: TextStyle(
+                    color: Colors.black,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16),
+              ),
             ),
           ),
         ],

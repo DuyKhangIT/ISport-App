@@ -7,6 +7,8 @@ import 'package:image_picker/image_picker.dart';
 import 'package:isport_app/widget/button_next.dart';
 
 import '../../assets/icons_assets.dart';
+import '../../handle_api/handle_api.dart';
+import '../../model/upload_media/upload_media_response.dart';
 
 class AvatarAccountUserScreen extends StatefulWidget {
   static String routeName = "/avatar_account_user_screen";
@@ -19,6 +21,7 @@ class AvatarAccountUserScreen extends StatefulWidget {
 class _AvatarAccountUserScreenState extends State<AvatarAccountUserScreen> {
   File? avatar;
   String filePath = "";
+  String photoPath = "";
 
   /// instantiate our image picker object
   final imagePicker = ImagePicker();
@@ -72,6 +75,38 @@ class _AvatarAccountUserScreenState extends State<AvatarAccountUserScreen> {
     if (cropperImage == null) return null;
     return File(cropperImage.path);
   }
+
+
+  // /// upload image api
+  // Future<UploadMediaResponse> uploadMedia() async {
+  //   UploadMediaResponse uploadMediaResponse;
+  //   Map<String, dynamic>? body;
+  //   try {
+  //     body = await HttpHelper.invokeSingleFile(
+  //         Uri.parse(
+  //             "http://192.168.1.7:3002/api/upload-media?iddevice=${widget.dataDeviceUser!.idDevice}"),
+  //         RequestType.post,
+  //         filePath,
+  //         headers: null,
+  //         body: null);
+  //   } catch (error) {
+  //     debugPrint("Fail to upload file ${(error)}");
+  //     rethrow;
+  //   }
+  //   if (body == null) return UploadMediaResponse.buildDefault();
+  //   uploadMediaResponse = UploadMediaResponse.fromJson(body);
+  //   if (uploadMediaResponse.code == 0) {
+  //     setState(() {
+  //       photoPath = uploadMediaResponse.data!;
+  //       debugPrint("Upload Media successfully");
+  //       if (photoPath.isNotEmpty) {
+  //       }
+  //     });
+  //   } else {
+  //     debugPrint("Upload Fail: ${uploadMediaResponse.message}");
+  //   }
+  //   return uploadMediaResponse;
+  // }
 
   @override
   Widget build(BuildContext context) {

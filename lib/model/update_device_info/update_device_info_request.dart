@@ -1,15 +1,14 @@
-class AddDeviceRequest {
+class UpdateDeviceInfoRequest {
   String name;
   String gender;
   int age;
   int weight;
   int height;
-  String date;
-  String time;
+  String avt;
   String nickname;
 
-  AddDeviceRequest(this.name, this.gender, this.age, this.weight, this.height,
-      this.date, this.time, this.nickname);
+  UpdateDeviceInfoRequest(this.name, this.gender, this.age, this.weight,
+      this.height, this.avt, this.nickname);
 
   Map<String, dynamic> toBodyRequest() => {
         'name': name,
@@ -17,8 +16,7 @@ class AddDeviceRequest {
         'age': age,
         'weight': weight,
         'height': height,
-        'date': date,
-        'time': time,
+        'avt': avt,
         'nickname': nickname,
       };
 }

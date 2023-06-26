@@ -1,16 +1,26 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:isport_app/model/update_device_info/update_device_info_request.dart';
 import 'package:isport_app/widget/button_next.dart';
 
 import '../../assets/icons_assets.dart';
+import '../../handle_api/handle_api.dart';
+import '../../model/list_device_user/data_list_device_user_response.dart';
+import '../../model/update_device_info/update_device_info_response.dart';
+import '../../model/upload_media/upload_media_response.dart';
+import '../../until/show_loading_dialog.dart';
+import '../list_user.dart';
 
 class AvatarUserScreen extends StatefulWidget {
+  final DataListDeviceUserResponse? dataDeviceUser;
   static String routeName = "/avatar_user_screen";
-  const AvatarUserScreen({Key? key}) : super(key: key);
+  const AvatarUserScreen({Key? key, this.dataDeviceUser}) : super(key: key);
 
   @override
   State<AvatarUserScreen> createState() => _AvatarUserScreenState();
@@ -19,6 +29,8 @@ class AvatarUserScreen extends StatefulWidget {
 class _AvatarUserScreenState extends State<AvatarUserScreen> {
   File? avatar;
   String filePath = "";
+  String photoPath = "";
+  bool isLoading = false;
 
   /// instantiate our image picker object
   final imagePicker = ImagePicker();
@@ -73,38 +85,154 @@ class _AvatarUserScreenState extends State<AvatarUserScreen> {
     return File(cropperImage.path);
   }
 
+  /// upload image api
+  Future<UploadMediaResponse> uploadMedia() async {
+    UploadMediaResponse uploadMediaResponse;
+    Map<String, dynamic>? body;
+    try {
+      body = await HttpHelper.invokeSingleFile(
+          Uri.parse(
+              "http://192.168.1.7:3002/api/upload-media?iddevice=${widget.dataDeviceUser!.idDevice}"),
+          RequestType.post,
+          filePath,
+          headers: null,
+          body: null);
+    } catch (error) {
+      debugPrint("Fail to upload file ${(error)}");
+      rethrow;
+    }
+    if (body == null) return UploadMediaResponse.buildDefault();
+    uploadMediaResponse = UploadMediaResponse.fromJson(body);
+    if (uploadMediaResponse.code == 0) {
+      setState(() {
+        photoPath = uploadMediaResponse.data!;
+        debugPrint("Upload Media successfully");
+        if (photoPath.isNotEmpty) {
+          UpdateDeviceInfoRequest updateDeviceInfoRequest =
+              UpdateDeviceInfoRequest(
+                  widget.dataDeviceUser!.name,
+                  widget.dataDeviceUser!.gender,
+                  widget.dataDeviceUser!.age,
+                  widget.dataDeviceUser!.weight,
+                  widget.dataDeviceUser!.height,
+                  photoPath,
+                  widget.dataDeviceUser!.nickName);
+          updateDeviceInfoApi(updateDeviceInfoRequest);
+        }
+      });
+    } else {
+      debugPrint("Upload Fail: ${uploadMediaResponse.message}");
+    }
+    return uploadMediaResponse;
+  }
+
+  /// call api update device
+  Future<UpdateDeviceInfoResponse> updateDeviceInfoApi(
+      UpdateDeviceInfoRequest updateDeviceInfoRequest) async {
+    setState(() {
+      isLoading = true;
+      if (isLoading) {
+        IsShowDialog().showLoadingDialog(context);
+      } else {
+        Navigator.of(context).pop();
+      }
+    });
+    UpdateDeviceInfoResponse updateDeviceInfoResponse;
+    Map<String, dynamic>? body;
+    try {
+      body = await HttpHelper.invokeHttp(
+          Uri.parse(
+              "http://192.168.1.7:3002/api/device/update?iddevice=${widget.dataDeviceUser!.idDevice}"),
+          RequestType.post,
+          headers: null,
+          body: const JsonEncoder()
+              .convert(updateDeviceInfoRequest.toBodyRequest()));
+    } catch (error) {
+      debugPrint("Fail to update device info $error");
+      rethrow;
+    }
+    if (body == null) return UpdateDeviceInfoResponse.buildDefault();
+    updateDeviceInfoResponse = UpdateDeviceInfoResponse.fromJson(body);
+    if (updateDeviceInfoResponse.code != 0) {
+      setState(() {
+        isLoading = false;
+        if (isLoading) {
+          IsShowDialog().showLoadingDialog(context);
+        } else {
+          Navigator.of(context).pop();
+        }
+        Fluttertoast.showToast(
+            msg: "Cập nhật hình ảnh không thành công!",
+            toastLength: Toast.LENGTH_SHORT,
+            gravity: ToastGravity.BOTTOM,
+            timeInSecForIosWeb: 3,
+            backgroundColor: Colors.red,
+            textColor: Colors.white,
+            fontSize: 16);
+        debugPrint(updateDeviceInfoResponse.message);
+      });
+    } else {
+      setState(() {
+        isLoading = false;
+        if (isLoading) {
+          IsShowDialog().showLoadingDialog(context);
+        } else {
+          Navigator.of(context).pop();
+          Fluttertoast.showToast(
+              msg: "Cập nhật hình ảnh thành công",
+              toastLength: Toast.LENGTH_SHORT,
+              gravity: ToastGravity.BOTTOM,
+              timeInSecForIosWeb: 3,
+              backgroundColor: Colors.orange,
+              textColor: Colors.black,
+              fontSize: 16);
+          Navigator.pushNamedAndRemoveUntil(context,
+              ListUserScreen.routeName,(Route<dynamic> route) => false);
+        }
+      });
+    }
+    return updateDeviceInfoResponse;
+  }
+
   @override
   Widget build(BuildContext context) {
     return SafeArea(
         child: Scaffold(
-          appBar: AppBar(
-            title: const Text(
-              'Người dùng 1',
-              style: TextStyle(
-                  color: Colors.black, fontWeight: FontWeight.bold, fontSize: 20),
-            ),
-            centerTitle: true,
-            backgroundColor: Colors.transparent,
-            leading: IconButton(
-              onPressed: () {
-                Navigator.pop(context);
-              },
-              icon: const Icon(Icons.arrow_back_ios_rounded, color: Colors.black),
-            ),
-            actions: [
-              Container(
-                width: 80,
-                alignment: Alignment.center,
-                margin: EdgeInsets.only(right: 15,top: 10,bottom: 10),
-                child: Text(
-                  'Xác nhận',
-                  style: TextStyle(
-                      color: Colors.black, fontWeight: FontWeight.bold, fontSize: 16),
-                ),
+      appBar: AppBar(
+        title:  Text(
+          widget.dataDeviceUser!.name.isNotEmpty ? widget.dataDeviceUser!.name: "",
+          style: const TextStyle(
+              color: Colors.black, fontWeight: FontWeight.bold, fontSize: 20),
+        ),
+        centerTitle: true,
+        backgroundColor: Colors.transparent,
+        leading: IconButton(
+          onPressed: () {
+            Navigator.pop(context);
+          },
+          icon: const Icon(Icons.arrow_back_ios_rounded, color: Colors.black),
+        ),
+        actions: [
+          GestureDetector(
+            onTap: (){
+              uploadMedia();
+            },
+            child: Container(
+              width: 80,
+              alignment: Alignment.center,
+              margin: const EdgeInsets.only(right: 15, top: 10, bottom: 10),
+              child: const Text(
+                'Xác nhận',
+                style: TextStyle(
+                    color: Colors.black,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16),
               ),
-            ],
-            elevation: 0,
+            ),
           ),
+        ],
+        elevation: 0,
+      ),
       body: Container(
         width: MediaQuery.of(context).size.width,
         padding: const EdgeInsets.symmetric(vertical: 70, horizontal: 20),
@@ -118,7 +246,6 @@ class _AvatarUserScreenState extends State<AvatarUserScreen> {
                   fontWeight: FontWeight.bold,
                 ),
                 textAlign: TextAlign.center),
-
             (avatar != null)
                 ? GestureDetector(
                     onTap: () {
@@ -147,16 +274,9 @@ class _AvatarUserScreenState extends State<AvatarUserScreen> {
                         Positioned(
                           right: 10,
                           bottom: 10,
-                          child: Container(
+                          child: SizedBox(
                             width: 28,
                             height: 28,
-                            decoration: BoxDecoration(
-                              border: Border.all(
-                                color: Colors.black,
-                                width: 0.5,
-                              ),
-                              shape: BoxShape.circle,
-                            ),
                             child: CircleAvatar(
                                 backgroundColor: Colors.orangeAccent,
                                 child: Padding(
@@ -193,7 +313,6 @@ class _AvatarUserScreenState extends State<AvatarUserScreen> {
                             child: Center(
                                 child: Image.asset(IconsAssets.icUpload)))),
                   ),
-
           ],
         ),
       ),

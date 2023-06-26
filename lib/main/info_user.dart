@@ -19,7 +19,7 @@ import 'user_info_function/avatar_user.dart';
 class InfoUserScreen extends StatefulWidget {
   final DataListDeviceUserResponse? dataDeviceUser;
   static String routeName = "/info_user_screen";
-  const InfoUserScreen({Key? key, required this.dataDeviceUser}) : super(key: key);
+  const InfoUserScreen({Key? key, this.dataDeviceUser}) : super(key: key);
 
   @override
   State<InfoUserScreen> createState() => _InfoUserScreenState();
@@ -168,9 +168,12 @@ class _InfoUserScreenState extends State<InfoUserScreen> {
             /// avt
             GestureDetector(
               onTap: (){
-                Navigator.pushNamed(
+                Navigator.push(
                   context,
-                  AvatarUserScreen.routeName,
+                  MaterialPageRoute(
+                      builder: (context) => AvatarUserScreen(
+                        dataDeviceUser: widget.dataDeviceUser,
+                      )),
                 );
               },
               child: Container(
@@ -227,9 +230,12 @@ class _InfoUserScreenState extends State<InfoUserScreen> {
             /// nick name
             GestureDetector(
               onTap: (){
-                Navigator.pushNamed(
+                Navigator.push(
                   context,
-                  InputNickNameScreen.routeName,
+                  MaterialPageRoute(
+                      builder: (context) => InputNickNameScreen(
+                        dataDeviceUser: widget.dataDeviceUser,
+                      )),
                 );
               },
               child: Container(
@@ -283,9 +289,12 @@ class _InfoUserScreenState extends State<InfoUserScreen> {
             /// gender
             GestureDetector(
               onTap: (){
-                Navigator.pushNamed(
+                Navigator.push(
                   context,
-                  ChooseGenderScreen.routeName,
+                  MaterialPageRoute(
+                      builder: (context) => ChooseGenderScreen(
+                        dataDeviceUser: widget.dataDeviceUser,
+                      )),
                 );
               },
               child: Container(
@@ -339,9 +348,12 @@ class _InfoUserScreenState extends State<InfoUserScreen> {
             /// Age
             GestureDetector(
               onTap: (){
-                Navigator.pushNamed(
+                Navigator.push(
                   context,
-                  SelectAgeScreen.routeName,
+                  MaterialPageRoute(
+                      builder: (context) => SelectAgeScreen(
+                        dataDeviceUser: widget.dataDeviceUser,
+                      )),
                 );
               },
               child: Container(
@@ -395,9 +407,12 @@ class _InfoUserScreenState extends State<InfoUserScreen> {
             /// height
             GestureDetector(
               onTap: (){
-                Navigator.pushNamed(
+                Navigator.push(
                   context,
-                  SelectHeightScreen.routeName,
+                  MaterialPageRoute(
+                      builder: (context) => SelectHeightScreen(
+                        dataDeviceUser: widget.dataDeviceUser,
+                      )),
                 );
               },
               child: Container(
@@ -451,9 +466,12 @@ class _InfoUserScreenState extends State<InfoUserScreen> {
             /// weight
             GestureDetector(
               onTap: (){
-                Navigator.pushNamed(
+                Navigator.push(
                   context,
-                  SelectWeightScreen.routeName,
+                  MaterialPageRoute(
+                      builder: (context) => SelectWeightScreen(
+                        dataDeviceUser: widget.dataDeviceUser,
+                      )),
                 );
               },
               child: Container(

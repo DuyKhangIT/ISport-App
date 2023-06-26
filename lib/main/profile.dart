@@ -93,7 +93,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         ),
                         Text(
                           Global.accountInfo!.idUser != 0
-                              ? Global.accountInfo!.idUser.toString()
+                              ? "ID: ${Global.accountInfo!.idUser.toString()}"
                               : "",
                           style: const TextStyle(
                               fontFamily: 'Nunito Sans',

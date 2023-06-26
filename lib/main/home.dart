@@ -106,10 +106,12 @@ class _HomeScreenState extends State<HomeScreen> {
       debugPrint('Received message: $data');
       getListDeviceUSer();
       getListDataOfDevice();
-        if(listDataOfDevice.isNotEmpty){
-          updateDataVelocity();
-          updateDataTimeOfVelocity();
-        }
+        setState(() {
+          if(listDataOfDevice.isNotEmpty){
+            updateDataVelocity();
+            updateDataTimeOfVelocity();
+          }
+        });
     });
   }
 
@@ -176,19 +178,23 @@ class _HomeScreenState extends State<HomeScreen> {
     //get data from api here
     listDataOfDeviceResponse = ListDataOfDeviceResponse.fromJson(body);
     if(listDataOfDeviceResponse.code == 0){
-      listDataOfDevice = listDataOfDeviceResponse.listDataDevice;
-      debugPrint("get list data of device successfully");
-      debugPrint(listDataOfDeviceResponse.message);
+     setState(() {
+       listDataOfDevice = listDataOfDeviceResponse.listDataDevice;
+       debugPrint("get list data of device successfully");
+       debugPrint(listDataOfDeviceResponse.message);
+     });
     }else{
-      Fluttertoast.showToast(
-          msg: "Lỗi server",
-          toastLength: Toast.LENGTH_SHORT,
-          gravity: ToastGravity.BOTTOM,
-          timeInSecForIosWeb: 1,
-          backgroundColor: Colors.orange,
-          textColor: Colors.black,
-          fontSize: 16);
-      debugPrint(listDataOfDeviceResponse.message);
+     setState(() {
+       Fluttertoast.showToast(
+           msg: "Lỗi server",
+           toastLength: Toast.LENGTH_SHORT,
+           gravity: ToastGravity.BOTTOM,
+           timeInSecForIosWeb: 1,
+           backgroundColor: Colors.orange,
+           textColor: Colors.black,
+           fontSize: 16);
+       debugPrint(listDataOfDeviceResponse.message);
+     });
     }
     return listDataOfDeviceResponse;
   }
