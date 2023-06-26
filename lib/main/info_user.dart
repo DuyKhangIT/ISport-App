@@ -523,12 +523,12 @@ class _InfoUserScreenState extends State<InfoUserScreen> {
             ),
 
             Padding(
-                padding: const EdgeInsets.only(top: 50, left: 20, right: 20),
+                padding: const EdgeInsets.only(top: 30, left: 20, right: 20),
                 child: ButtonNext(
                   onTap: () {
                     deleteDevice();
                   },
-                  textInside: "Xóa người dùng",
+                  textInside: "Xóa thiết bị",
                   color: Colors.orange,
                 ))
           ],

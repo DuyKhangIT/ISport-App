@@ -175,6 +175,12 @@ class _SelectAgeScreenState extends State<SelectAgeScreen> {
                   height: MediaQuery.of(context).size.height/4,
                   margin: const EdgeInsets.symmetric(vertical: 20),
                   child:  NumberPicker(
+                    selectedTextStyle: const TextStyle(
+                      fontSize: 20,
+                      fontFamily: 'Nunito Sans',
+                      fontWeight: FontWeight.bold,
+                      color: Colors.orangeAccent
+                    ),
                     textStyle: const TextStyle(
                       fontSize: 16,
                       fontFamily: 'Nunito Sans',

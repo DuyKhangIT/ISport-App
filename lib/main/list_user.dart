@@ -59,7 +59,7 @@ class _ListUserScreenState extends State<ListUserScreen> {
             ),
 
             Padding(
-                padding: const EdgeInsets.fromLTRB(30,20,30,0),
+                padding: const EdgeInsets.fromLTRB(20,20,20,0),
                 child: ButtonNext(onTap: (){
                   Navigator.pushNamed(
                     context,

@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:isport_app/model/add_device/add_device_request.dart';
 import 'package:isport_app/model/add_device/add_device_response.dart';
+import 'package:numberpicker/numberpicker.dart';
 
 import '../assets/icons_assets.dart';
 import '../handle_api/handle_api.dart';
@@ -29,16 +30,15 @@ class _AddDeviceScreenState extends State<AddDeviceScreen> {
   String filePath = "";
   TextEditingController nickNameController = TextEditingController();
   TextEditingController fullNameController = TextEditingController();
-  TextEditingController ageController = TextEditingController();
   TextEditingController heightController = TextEditingController();
   TextEditingController weightController = TextEditingController();
   String nickName = "";
   String fullName = "";
-  String age = "";
   String gender = "";
   String height = "";
   String weight = "";
   bool isLoading = false;
+  int age =0 ;
 
   void clearTextNickName() {
     nickName = "";
@@ -50,10 +50,6 @@ class _AddDeviceScreenState extends State<AddDeviceScreen> {
     fullNameController.clear();
   }
 
-  void clearTextAge() {
-    age = "";
-    ageController.clear();
-  }
 
   void clearTextHeight() {
     height = "";
@@ -200,6 +196,7 @@ class _AddDeviceScreenState extends State<AddDeviceScreen> {
           scrollDirection: Axis.vertical,
           child: Column(
             children: [
+              /// full name
               Container(
                 width: MediaQuery.of(context).size.width,
                 margin: const EdgeInsets.only(top: 20),
@@ -211,9 +208,8 @@ class _AddDeviceScreenState extends State<AddDeviceScreen> {
                     ),
                     textAlign: TextAlign.left),
               ),
-
-              /// text field full name
               textFieldFullName(),
+              /// nick name
               Container(
                 width: MediaQuery.of(context).size.width,
                 margin: const EdgeInsets.only(top: 20),
@@ -226,10 +222,11 @@ class _AddDeviceScreenState extends State<AddDeviceScreen> {
                     textAlign: TextAlign.left),
               ),
               textFieldNickName(),
+              /// age
               Container(
                 width: MediaQuery.of(context).size.width,
                 margin: const EdgeInsets.only(top: 20),
-                child: const Text('Nhập tuổi của bạn(*)',
+                child: const Text('Chọn tuổi của bạn(*)',
                     style: TextStyle(
                       fontSize: 16,
                       fontFamily: 'Nunito Sans',
@@ -237,7 +234,35 @@ class _AddDeviceScreenState extends State<AddDeviceScreen> {
                     ),
                     textAlign: TextAlign.left),
               ),
-              textFieldAge(),
+              Container(
+                width: MediaQuery.of(context).size.width,
+                alignment: Alignment.centerLeft,
+                margin: const EdgeInsets.fromLTRB(20,20,20,0),
+                child: NumberPicker(
+                  axis: Axis.horizontal,
+                  selectedTextStyle: const TextStyle(
+                      fontSize: 20,
+                      fontFamily: 'Nunito Sans',
+                      fontWeight: FontWeight.bold,
+                      color: Colors.orangeAccent
+                  ),
+                  textStyle: const TextStyle(
+                    fontSize: 16,
+                    fontFamily: 'Nunito Sans',
+                    fontWeight: FontWeight.bold,
+                  ),
+                  value: age,
+                  minValue: 0,
+                  maxValue: 100,
+                  onChanged: (value) {
+                    setState(() {
+                      age = value;
+                      debugPrint(age.toString());
+                    });
+                  },
+                ),
+              ),
+              /// gender
               Container(
                 width: MediaQuery.of(context).size.width,
                 margin: const EdgeInsets.only(top: 20),
@@ -249,7 +274,6 @@ class _AddDeviceScreenState extends State<AddDeviceScreen> {
                     ),
                     textAlign: TextAlign.left),
               ),
-              /// gender
               Container(
                 width: MediaQuery.of(context).size.width,
                 margin: const EdgeInsets.fromLTRB(20,20,20,0),
@@ -335,7 +359,7 @@ class _AddDeviceScreenState extends State<AddDeviceScreen> {
                   ],
                 ),
               ),
-
+              /// height
               Container(
                 width: MediaQuery.of(context).size.width,
                 margin: const EdgeInsets.only(top: 20),
@@ -348,6 +372,7 @@ class _AddDeviceScreenState extends State<AddDeviceScreen> {
                     textAlign: TextAlign.left),
               ),
               textFieldHeight(),
+              /// weight
               Container(
                 width: MediaQuery.of(context).size.width,
                 margin: const EdgeInsets.only(top: 20),
@@ -360,22 +385,22 @@ class _AddDeviceScreenState extends State<AddDeviceScreen> {
                     textAlign: TextAlign.left),
               ),
               textFieldWeight(),
-
+              /// button add
               Padding(
-                  padding: const EdgeInsets.only(top: 40),
+                  padding: const EdgeInsets.only(top: 40,left: 20,right: 20,bottom: 20),
                   child: ButtonNext(
                     onTap: () {
                       if (Global.isAvailableToClick()) {
                           if (fullName.isNotEmpty &&
                               gender.isNotEmpty &&
-                              age.isNotEmpty &&
+                              age != 0 &&
                               weight.isNotEmpty &&
                               height.isNotEmpty) {
                               AddDeviceRequest addDeviceRequest =
                               AddDeviceRequest(
                                   fullName,
                                   gender,
-                                  int.parse(age),
+                                  age,
                                   int.parse(weight),
                                   int.parse(height),
                                   "2023-06-26",
@@ -505,64 +530,6 @@ class _AddDeviceScreenState extends State<AddDeviceScreen> {
         onChanged: (value) {
           setState(() {
             nickName = value;
-          });
-        },
-        style: TextStyle(
-            color: Theme.of(context).brightness == Brightness.dark
-                ? Colors.white
-                : Colors.black,
-            fontFamily: 'NunitoSans',
-            fontSize: 14,
-            fontStyle: FontStyle.normal,
-            fontWeight: FontWeight.w600,
-            height: 1.9),
-      ),
-    );
-  }
-
-  Widget textFieldAge() {
-    return Container(
-      width: double.infinity,
-      height: 50,
-      decoration: BoxDecoration(
-        border: Border.all(color: Colors.grey),
-        borderRadius: BorderRadius.circular(6),
-      ),
-      margin: const EdgeInsets.only(top: 10),
-      padding: const EdgeInsets.only(left: 16, right: 10),
-      child: TextField(
-        controller: ageController,
-        keyboardType: TextInputType.number,
-        cursorColor: Colors.grey,
-        decoration: InputDecoration(
-            isDense: true,
-            hintText: 'Tuổi của bạn',
-            hintStyle: const TextStyle(
-              fontFamily: 'NunitoSans',
-              fontStyle: FontStyle.normal,
-              fontWeight: FontWeight.w400,
-              fontSize: 14,
-            ),
-            border: InputBorder.none,
-            focusedBorder: InputBorder.none,
-            enabledBorder: InputBorder.none,
-            counterText: '',
-            suffixIcon: (ageController.text.isEmpty)
-                ? const SizedBox()
-                : GestureDetector(
-                    onTap: () {
-                      clearTextAge();
-                    },
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      child: Image.asset(
-                        IconsAssets.icClearText,
-                      ),
-                    ),
-                  )),
-        onChanged: (value) {
-          setState(() {
-            age = value;
           });
         },
         style: TextStyle(
