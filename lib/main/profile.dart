@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:isport_app/main/about_us.dart';
+import 'package:isport_app/main/account_info.dart';
 import 'package:isport_app/main/list_user.dart';
 import 'package:isport_app/main/review.dart';
 import 'package:isport_app/onboarding/login.dart';
@@ -7,6 +8,7 @@ import 'package:isport_app/widget/button_next.dart';
 
 import '../assets/icons_assets.dart';
 import '../assets/images_assets.dart';
+import '../until/global.dart';
 import '../until/share_preferences.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -24,13 +26,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return SafeArea(
         child: Scaffold(
             body: Padding(
-      padding: const EdgeInsets.all(40),
+      padding: const EdgeInsets.fromLTRB(30, 40, 30, 0),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.start,
         children: [
           /// account user
           GestureDetector(
-            onTap: (){},
+            onTap: () {
+              Navigator.pushNamed(
+                context,
+                AccountInfoScreen.routeName,
+              );
+            },
             child: Container(
               width: MediaQuery.of(context).size.width,
               height: 100,
@@ -43,34 +50,54 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   SizedBox(
                     width: 100,
                     height: 100,
-                    child: ClipOval(child: Image.asset(ImageAssets.imgMeo)),
+                    child: ClipOval(
+                        child:
+                        Global.accountInfo!.avt.isNotEmpty
+                            ? Image.network(
+                                Global.convertMedia(Global.accountInfo!.avt),
+                                fit: BoxFit.cover,
+                                errorBuilder: (context, exception, stackTrace) {
+                                  return Image.asset(
+                                      ImageAssets.imgAvtDefault,
+                                      fit: BoxFit.cover);
+                                },
+                              )
+                            : Image.asset(
+                            ImageAssets.imgAvtDefault,
+                            fit: BoxFit.cover)
+
+                    ),
                   ),
 
                   /// full name and id
                   Container(
-                    width: MediaQuery.of(context).size.width / 2.4,
+                    width: MediaQuery.of(context).size.width / 2.3,
                     height: 60,
-                    margin: const EdgeInsets.only(left: 20,right: 5),
+                    margin: const EdgeInsets.only(left: 20, right: 10),
                     alignment: Alignment.centerLeft,
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.spaceAround,
                       crossAxisAlignment: CrossAxisAlignment.start,
-                      children: const [
+                      children: [
                         Text(
-                          'Thức',
+                          Global.accountInfo!.fullName.isNotEmpty
+                              ? Global.accountInfo!.fullName
+                              : "",
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
+                          style: const TextStyle(
                               fontFamily: 'Nunito Sans',
-                              fontSize: 20,
+                              fontSize: 18,
                               fontWeight: FontWeight.w500,
                               color: Colors.black),
                         ),
                         Text(
-                          'ID: 112233',
-                          style: TextStyle(
+                          Global.accountInfo!.idUser != 0
+                              ? Global.accountInfo!.idUser.toString()
+                              : "",
+                          style: const TextStyle(
                               fontFamily: 'Nunito Sans',
-                              fontSize: 20,
+                              fontSize: 18,
                               fontWeight: FontWeight.w500,
                               color: Colors.black),
                         ),
@@ -108,7 +135,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   Container(
                     constraints: const BoxConstraints(minWidth: 180),
                     child: const Text(
-                      'Thông tin người dùng',
+                      'Danh sách thiết bị',
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(

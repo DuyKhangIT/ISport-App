@@ -47,7 +47,7 @@ class _LoginScreenState extends State<LoginScreen> {
     Map<String, dynamic>? body;
     try {
       body = await HttpHelper.invokeHttp(
-          Uri.parse("http://192.168.1.10:3002/api/login"),
+          Uri.parse("http://192.168.1.7:3002/api/login"),
           RequestType.post,
           headers: null,
           body: const JsonEncoder().convert(loginRequest.toBodyRequest()));

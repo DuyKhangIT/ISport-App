@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:isport_app/main/account_info_function/avatar_account_user.dart';
 
-import '../assets/icons_assets.dart';
 import '../assets/images_assets.dart';
 import '../until/global.dart';
 
@@ -20,21 +19,20 @@ class AccountInfoScreen extends StatefulWidget {
 class _AccountInfoScreenState extends State<AccountInfoScreen> {
   @override
   Widget build(BuildContext context) {
-    return SafeArea(child: Scaffold(
+    return SafeArea(
+        child: Scaffold(
       appBar: AppBar(
         backgroundColor: Color(Global.primaryColor),
         centerTitle: true,
         leading: GestureDetector(
-          onTap: (){
+          onTap: () {
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => NavigationBarScreen(currentIndex: 1)),
+              MaterialPageRoute(
+                  builder: (context) => NavigationBarScreen(currentIndex: 1)),
             );
           },
-          child: const Icon(
-              Icons.arrow_back_ios_rounded,
-              color: Colors.black
-          ),
+          child: const Icon(Icons.arrow_back_ios_rounded, color: Colors.black),
         ),
         title: const Text(
           'Thông tin tài khoản',
@@ -47,12 +45,12 @@ class _AccountInfoScreenState extends State<AccountInfoScreen> {
         elevation: 0,
       ),
       body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 30,vertical: 20),
+        padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 20),
         child: Column(
           children: [
             /// avt
             GestureDetector(
-              onTap: (){
+              onTap: () {
                 Navigator.pushNamed(
                   context,
                   AvatarAccountUserScreen.routeName,
@@ -87,7 +85,19 @@ class _AccountInfoScreenState extends State<AccountInfoScreen> {
                             width: 50,
                             height: 50,
                             child: ClipOval(
-                              child: Image.asset(ImageAssets.imgMeo),
+                              child: Global.accountInfo!.avt.isNotEmpty
+                                  ? Image.network(
+                                      Global.convertMedia(
+                                          Global.accountInfo!.avt),
+                                      fit: BoxFit.cover, errorBuilder:
+                                          (context, exception, stackTrace) {
+                                      return Image.asset(
+                                          ImageAssets.imgAvtDefault,
+                                          fit: BoxFit.cover);
+                                    })
+                                  : Image.asset(
+                                  ImageAssets.imgAvtDefault,
+                                  fit: BoxFit.cover),
                             ),
                           ),
                           const Icon(Icons.arrow_forward_ios_outlined)
@@ -101,7 +111,7 @@ class _AccountInfoScreenState extends State<AccountInfoScreen> {
 
             /// full name
             GestureDetector(
-              onTap: (){
+              onTap: () {
                 Navigator.pushNamed(
                   context,
                   InputFullNameAccountUserScreen.routeName,
@@ -127,21 +137,23 @@ class _AccountInfoScreenState extends State<AccountInfoScreen> {
                           color: Colors.black),
                     ),
                     Container(
-                      constraints: const BoxConstraints(maxWidth: 200),
+                      constraints: const BoxConstraints(maxWidth: 220),
                       margin: const EdgeInsets.only(right: 10),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Container(
-                            constraints: const BoxConstraints(maxWidth: 150),
+                            constraints: const BoxConstraints(maxWidth: 180),
                             alignment: Alignment.centerRight,
-                            child: const Text(
-                              'Thức',
+                            child: Text(
+                              Global.accountInfo!.fullName.isNotEmpty
+                                  ? Global.accountInfo!.fullName
+                                  : "",
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
+                              style: const TextStyle(
                                   fontFamily: 'Nunito Sans',
-                                  fontSize: 20,
+                                  fontSize: 18,
                                   fontWeight: FontWeight.w500,
                                   color: Colors.black),
                             ),
@@ -157,7 +169,7 @@ class _AccountInfoScreenState extends State<AccountInfoScreen> {
 
             /// password account
             GestureDetector(
-              onTap: (){
+              onTap: () {
                 Navigator.pushNamed(
                   context,
                   ChangePasswordAccountUserScreen.routeName,

@@ -7,6 +7,8 @@ class DataListDeviceUserResponse {
   int height = 0;
   String time = "";
   int idUser = 0;
+  String avt = "";
+  String nickName = "";
 
   DataListDeviceUserResponse(
     this.idDevice,
@@ -17,6 +19,8 @@ class DataListDeviceUserResponse {
     this.height,
     this.time,
     this.idUser,
+    this.avt,
+    this.nickName,
   );
   DataListDeviceUserResponse.buildDefault();
   factory DataListDeviceUserResponse.fromJson(Map<String, dynamic> json) {
@@ -29,6 +33,8 @@ class DataListDeviceUserResponse {
       json['height'],
       json['time'],
       json['iduser'],
+      json['avt'],
+      json['nickname'],
     );
   }
 }

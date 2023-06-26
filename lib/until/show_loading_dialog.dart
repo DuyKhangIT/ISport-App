@@ -14,7 +14,7 @@ class IsShowDialog {
               child: SizedBox(
                   width: 40,
                   height: 40,
-                  child: CircularProgressIndicator(color: Colors.green))),
+                  child: CircularProgressIndicator(color: Colors.orangeAccent))),
         );
       },
     );

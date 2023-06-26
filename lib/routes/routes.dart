@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:isport_app/main/about_us.dart';
+import 'package:isport_app/main/add_device.dart';
 import 'package:isport_app/main/home.dart';
 import 'package:isport_app/main/info_user.dart';
 import 'package:isport_app/main/list_user.dart';
@@ -31,7 +32,7 @@ final Map<String,WidgetBuilder> routes = {
   ProfileScreen.routeName: (context) =>  const ProfileScreen(),
   MapScreen.routeName: (context) =>  const MapScreen(),
   ListUserScreen.routeName: (context) =>  const ListUserScreen(),
-  InfoUserScreen.routeName: (context) =>  const InfoUserScreen(),
+  InfoUserScreen.routeName: (context) =>  const InfoUserScreen(dataDeviceUser: null,),
   AvatarUserScreen.routeName: (context) =>  const AvatarUserScreen(),
   InputNickNameScreen.routeName: (context) =>  const InputNickNameScreen(),
   ChooseGenderScreen.routeName: (context) =>  const ChooseGenderScreen(),
@@ -44,5 +45,6 @@ final Map<String,WidgetBuilder> routes = {
   AvatarAccountUserScreen.routeName: (context) =>  const AvatarAccountUserScreen(),
   InputFullNameAccountUserScreen.routeName: (context) =>  const InputFullNameAccountUserScreen(),
   ChangePasswordAccountUserScreen.routeName: (context) =>  const ChangePasswordAccountUserScreen(),
+  AddDeviceScreen.routeName: (context) =>  const AddDeviceScreen(),
 
 };

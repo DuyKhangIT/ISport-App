@@ -1,6 +1,13 @@
+import 'package:flutter/cupertino.dart';
+
+import '../model/account_info/data_account_info_response.dart';
+import '../model/list_device_user/data_list_device_user_response.dart';
+
 class Global{
   static int primaryColor = 0xFFFFDAC1;
   static String mToken = "";
+  static DataAccountInfoResponse? accountInfo;
+  static List<DataListDeviceUserResponse> listDeviceUser = [];
 
 
   /// Condition to check the email address
@@ -23,5 +30,10 @@ class Global{
       return true;
     }
     return false;
+  }
+
+  static String convertMedia(String path) {
+    debugPrint("Loaded path: " + path);
+    return "http://192.168.1.7:3002/$path";
   }
 }

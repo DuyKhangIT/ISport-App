@@ -3,4 +3,5 @@ class ImageAssets {
   static const String imgTet = 'assets/images/ig_tet.png';
   static const String imgMeo = 'assets/images/ig_meo.jpg';
   static const String imgBgQRScreen = 'assets/images/ig_background_qr_screen.jpg';
+  static const String imgAvtDefault = 'assets/images/ig_avt_default.jpg';
 }

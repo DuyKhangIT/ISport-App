@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:isport_app/assets/assets.dart';
+import 'package:isport_app/main/add_device.dart';
 import 'package:isport_app/main/info_user.dart';
 import 'package:isport_app/main/navigation_bar.dart';
 import 'package:isport_app/widget/button_next.dart';
@@ -34,7 +35,7 @@ class _ListUserScreenState extends State<ListUserScreen> {
           ),
         ),
         title: const Text(
-          'Thông tin người dùng',
+          'Danh sách các thiết bị',
           style: TextStyle(
               fontFamily: 'Nunito Sans',
               fontSize: 22,
@@ -51,26 +52,34 @@ class _ListUserScreenState extends State<ListUserScreen> {
           children: [
             Expanded(
               child: ListView.builder(
-                  itemCount: 5,
+                  itemCount:  Global.listDeviceUser.length,
                   itemBuilder: (context,index){
-                return contentListUser();
+                return contentListUser(index);
               }),
             ),
 
             Padding(
                 padding: const EdgeInsets.fromLTRB(30,20,30,0),
-                child: ButtonNext(onTap: (){},textInside: "Thêm người dùng",color: Colors.orange,))
+                child: ButtonNext(onTap: (){
+                  Navigator.pushNamed(
+                    context,
+                    AddDeviceScreen.routeName,
+                  );
+                },textInside: "Thêm thiết bị",color: Colors.orange,))
           ],
         ),
       ),
     ));
   }
-  Widget contentListUser(){
+  Widget contentListUser(index){
     return GestureDetector(
       onTap: (){
-        Navigator.pushNamed(
+        Navigator.push(
           context,
-          InfoUserScreen.routeName,
+          MaterialPageRoute(
+              builder: (context) => InfoUserScreen(
+                dataDeviceUser: Global.listDeviceUser[index],
+              )),
         );
       },
       child: Container(
@@ -82,11 +91,11 @@ class _ListUserScreenState extends State<ListUserScreen> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Text(
-              'Người dùng 1',
+            Text(
+              Global.listDeviceUser[index].name,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: TextStyle(
+              style: const TextStyle(
                   fontFamily: 'Nunito Sans',
                   fontSize: 20,
                   fontWeight: FontWeight.w500,
@@ -102,7 +111,17 @@ class _ListUserScreenState extends State<ListUserScreen> {
                     width: 50,
                     height: 50,
                     child: ClipOval(
-                      child: Image.asset(ImageAssets.imgMeo),
+                      child:
+                      Global.listDeviceUser[index].avt.isNotEmpty
+                      ?Image.network(Global.convertMedia(Global.listDeviceUser[index].avt),fit: BoxFit.cover,
+                        errorBuilder: (context, exception, stackTrace) {
+                          return Image.asset(
+                              ImageAssets.imgAvtDefault,
+                              fit: BoxFit.cover);
+                        })
+                      :Image.asset(
+                          ImageAssets.imgAvtDefault,
+                          fit: BoxFit.cover),
                     ),
                   ),
                   const Icon(Icons.arrow_forward_ios_outlined)
