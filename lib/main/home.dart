@@ -554,7 +554,13 @@ class _HomeScreenState extends State<HomeScreen> {
               Padding(
                 padding: const EdgeInsets.fromLTRB(30, 40, 30, 0),
                 child: ButtonNext(
-                  onTap: () {},
+                  onTap: () {
+                    setState(() {
+                      listDataOfDevice = [];
+                      chartDataVelocity = [];
+                      chartDataHeartRate = [];
+                    });
+                  },
                   textInside: "Xóa dữ liệu",
                   color: Colors.orange,
                 ),

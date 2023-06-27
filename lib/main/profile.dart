@@ -30,7 +30,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.start,
         children: [
-          /// account user
+          /// account info user
           GestureDetector(
             onTap: () {
               Navigator.pushNamed(
@@ -41,6 +41,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             child: Container(
               width: MediaQuery.of(context).size.width,
               height: 100,
+              color: Colors.transparent,
               margin: const EdgeInsets.only(bottom: 30),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.start,
