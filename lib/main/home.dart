@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:isport_app/assets/assets.dart';
@@ -11,11 +10,11 @@ import 'package:isport_app/model/list_data_of_device/data_list_data_of_device_re
 import 'package:isport_app/model/list_data_of_device/list_data_of_device_response.dart';
 import 'package:isport_app/widget/button_next.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
+import 'package:syncfusion_flutter_charts/charts.dart';
 import '../handle_api/handle_api.dart';
 import '../model/list_device_user/data_list_device_user_response.dart';
 import '../model/list_device_user/list_device_user_response.dart';
 import '../until/global.dart';
-import '../until/show_loading_dialog.dart';
 
 class HomeScreen extends StatefulWidget {
   static String routeName = "/home";
@@ -31,11 +30,19 @@ class _HomeScreenState extends State<HomeScreen> {
   final Completer<GoogleMapController> _controller = Completer();
   List<DataListDeviceUserResponse> listDeviceUser = [];
   List<DataListDataOfDeviceResponse> listDataOfDevice = [];
-  List<String> listTimeOfVelocity = [];
-  List<int> listVelocity = [];
-  List<PricePoint> point = [];
+
+  ChartSeriesController? _chartSeriesController;
+
+  /// list data velocity line chart
+  List<_ChartDataVelocity> chartDataVelocity = [];
+
+  /// list data heart rate line chart
+  List<_ChartDataHeartRate> chartDataHeartRate = [];
+
   int idDevice = 0;
   bool isLoading = false;
+  bool isUpdate = false;
+
   Set<Marker> markersConsumer = {};
   CameraPosition kLake =
       const CameraPosition(target: LatLng(10.9501542, 106.6707032), zoom: 16);
@@ -56,43 +63,37 @@ class _HomeScreenState extends State<HomeScreen> {
       context: context,
       position: const RelativeRect.fromLTRB(20, 80, 100, 0),
       color: Colors.orange,
-      items: List.generate(
-        listDeviceUser.length,
-            (index) {
-          return PopupMenuItem(
-            value: index,
-            child: Text(
-              listDeviceUser[index].name,
-              style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                fontFamily: 'Nunito Sans',
-              ),
+      items: List.generate(listDeviceUser.length, (index) {
+        return PopupMenuItem(
+          value: index,
+          child: Text(
+            listDeviceUser[index].name,
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              fontFamily: 'Nunito Sans',
             ),
-          );
-            }
-      ),
+          ),
+        );
+      }),
       elevation: 0,
     ).then((value) {
-      if (value != null)
-        {
-          setState(() {
-            idDevice = listDeviceUser[value].idDevice;
-            debugPrint("iddevice: ${idDevice.toString()}");
-            getListDataOfDevice();
-            listVelocity = [];
-            listTimeOfVelocity = [];
-          });
-          debugPrint("index: ${value.toString()}");
-        }
+      if (value != null) {
+        setState(() {
+          idDevice = listDeviceUser[value].idDevice;
+          debugPrint("iddevice: ${idDevice.toString()}");
+          isUpdate = false;
+          getListDataOfDevice();
+        });
+        debugPrint("index: ${value.toString()}");
+      }
     });
   }
 
-
-  void connectAndListenSocket(){
+  void connectAndListenSocket() {
     debugPrint('-------------Call function-----------------');
-    socket = IO.io('http://192.168.1.7:3002',IO.OptionBuilder()
-        .setTransports(['websocket']).build());
+    socket = IO.io('http://192.168.1.7:3002',
+        IO.OptionBuilder().setTransports(['websocket']).build());
 
     socket.onConnect((_) {
       debugPrint('Connect successfully');
@@ -105,14 +106,45 @@ class _HomeScreenState extends State<HomeScreen> {
     socket.on('mysql-event', (data) {
       debugPrint('Received message: $data');
       getListDeviceUSer();
-      getListDataOfDevice();
-        setState(() {
-          if(listDataOfDevice.isNotEmpty){
-            updateDataVelocity();
-            updateDataTimeOfVelocity();
-          }
-        });
+      setState(() {
+        isUpdate = true;
+        getListDataOfDevice();
+      });
     });
+  }
+
+  void updateDataVelocityChart() {
+    chartDataVelocity.add(_ChartDataVelocity(
+        "${listDataOfDevice[0].hour}:${listDataOfDevice[0].minute}:${listDataOfDevice[0].second}",
+        listDataOfDevice[0].velocity));
+    if (chartDataVelocity.length == 6) {
+      chartDataVelocity.removeAt(0);
+      _chartSeriesController?.updateDataSource(
+        addedDataIndexes: <int>[chartDataVelocity.length - 1],
+        removedDataIndexes: <int>[0],
+      );
+    } else {
+      _chartSeriesController?.updateDataSource(
+        addedDataIndexes: <int>[chartDataVelocity.length - 1],
+      );
+    }
+  }
+
+  void updateDataHeartRateChart() {
+    chartDataHeartRate.add(_ChartDataHeartRate(
+        "${listDataOfDevice[0].hour}:${listDataOfDevice[0].minute}:${listDataOfDevice[0].second}",
+        listDataOfDevice[0].heartRate));
+    if (chartDataHeartRate.length == 6) {
+      chartDataHeartRate.removeAt(0);
+      _chartSeriesController?.updateDataSource(
+        addedDataIndexes: <int>[chartDataHeartRate.length - 1],
+        removedDataIndexes: <int>[0],
+      );
+    } else {
+      _chartSeriesController?.updateDataSource(
+        addedDataIndexes: <int>[chartDataHeartRate.length - 1],
+      );
+    }
   }
 
   @override
@@ -122,7 +154,6 @@ class _HomeScreenState extends State<HomeScreen> {
     getAccountInfo();
     super.initState();
   }
-
 
   /// list device user
   Future<ListDeviceUserResponse> getListDeviceUSer() async {
@@ -141,24 +172,23 @@ class _HomeScreenState extends State<HomeScreen> {
     if (body == null) return ListDeviceUserResponse.buildDefault();
     //get data from api here
     listDeviceUserResponse = ListDeviceUserResponse.fromJson(body);
-    if(listDeviceUserResponse.code == 0){
+    if (listDeviceUserResponse.code == 0) {
       listDeviceUser = listDeviceUserResponse.listDataDeviceUser;
       Global.listDeviceUser = listDeviceUserResponse.listDataDeviceUser;
       debugPrint("Get list device successfully");
-    }else{
-     Fluttertoast.showToast(
-         msg: "Lỗi server",
-         toastLength: Toast.LENGTH_SHORT,
-         gravity: ToastGravity.BOTTOM,
-         timeInSecForIosWeb: 1,
-         backgroundColor: Colors.orange,
-         textColor: Colors.black,
-         fontSize: 16);
-     debugPrint(listDeviceUserResponse.message);
+    } else {
+      Fluttertoast.showToast(
+          msg: "Lỗi server",
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.BOTTOM,
+          timeInSecForIosWeb: 1,
+          backgroundColor: Colors.orange,
+          textColor: Colors.black,
+          fontSize: 16);
+      debugPrint(listDeviceUserResponse.message);
     }
     return listDeviceUserResponse;
   }
-
 
   /// list data of device
   Future<ListDataOfDeviceResponse> getListDataOfDevice() async {
@@ -177,28 +207,44 @@ class _HomeScreenState extends State<HomeScreen> {
     if (body == null) return ListDataOfDeviceResponse.buildDefault();
     //get data from api here
     listDataOfDeviceResponse = ListDataOfDeviceResponse.fromJson(body);
-    if(listDataOfDeviceResponse.code == 0){
-     setState(() {
-       listDataOfDevice = listDataOfDeviceResponse.listDataDevice;
-       debugPrint("get list data of device successfully");
-       debugPrint(listDataOfDeviceResponse.message);
-     });
-    }else{
-     setState(() {
-       Fluttertoast.showToast(
-           msg: "Lỗi server",
-           toastLength: Toast.LENGTH_SHORT,
-           gravity: ToastGravity.BOTTOM,
-           timeInSecForIosWeb: 1,
-           backgroundColor: Colors.orange,
-           textColor: Colors.black,
-           fontSize: 16);
-       debugPrint(listDataOfDeviceResponse.message);
-     });
+    if (listDataOfDeviceResponse.code == 0) {
+      setState(() {
+        listDataOfDevice = listDataOfDeviceResponse.listDataDevice;
+        debugPrint("get list data of device successfully");
+        debugPrint(listDataOfDeviceResponse.message);
+        if (listDataOfDevice.isNotEmpty) {
+          if (isUpdate == false) {
+            chartDataVelocity = <_ChartDataVelocity>[
+              _ChartDataVelocity(
+                  "${listDataOfDevice[0].hour}:${listDataOfDevice[0].minute}:${listDataOfDevice[0].second}",
+                  listDataOfDevice[0].velocity),
+            ];
+            chartDataHeartRate = <_ChartDataHeartRate>[
+              _ChartDataHeartRate(
+                  "${listDataOfDevice[0].hour}:${listDataOfDevice[0].minute}:${listDataOfDevice[0].second}",
+                  listDataOfDevice[0].heartRate),
+            ];
+          } else {
+            updateDataVelocityChart();
+            updateDataHeartRateChart();
+          }
+        }
+      });
+    } else {
+      setState(() {
+        Fluttertoast.showToast(
+            msg: "Lỗi server",
+            toastLength: Toast.LENGTH_SHORT,
+            gravity: ToastGravity.BOTTOM,
+            timeInSecForIosWeb: 1,
+            backgroundColor: Colors.orange,
+            textColor: Colors.black,
+            fontSize: 16);
+        debugPrint(listDataOfDeviceResponse.message);
+      });
     }
     return listDataOfDeviceResponse;
   }
-
 
   /// account info
   Future<AccountInfoResponse> getAccountInfo() async {
@@ -206,10 +252,8 @@ class _HomeScreenState extends State<HomeScreen> {
     Map<String, dynamic>? body;
     try {
       body = await HttpHelper.invokeHttp(
-          Uri.parse("http://192.168.1.7:3002/api/user"),
-          RequestType.get,
-          headers: null,
-          body: null);
+          Uri.parse("http://192.168.1.7:3002/api/user"), RequestType.get,
+          headers: null, body: null);
     } catch (error) {
       debugPrint("Fail to get account info $error");
       rethrow;
@@ -217,12 +261,11 @@ class _HomeScreenState extends State<HomeScreen> {
     if (body == null) return AccountInfoResponse.buildDefault();
     //get data from api here
     accountInfoResponse = AccountInfoResponse.fromJson(body);
-    if(accountInfoResponse.code == 0){
+    if (accountInfoResponse.code == 0) {
       Global.accountInfo = accountInfoResponse.accountInfo[0];
       debugPrint("Get Account Info successfully");
       debugPrint(Global.accountInfo.toString());
-
-    }else{
+    } else {
       Fluttertoast.showToast(
           msg: "Lỗi server",
           toastLength: Toast.LENGTH_SHORT,
@@ -232,30 +275,8 @@ class _HomeScreenState extends State<HomeScreen> {
           textColor: Colors.black,
           fontSize: 16);
       debugPrint(accountInfoResponse.message);
-
     }
     return accountInfoResponse;
-  }
-
-  void updateDataVelocity(){
-    setState(() {
-      listVelocity.add((listDataOfDevice[0].velocity).toInt());
-      if(listVelocity.length > 7){
-        listVelocity.removeAt(0);
-      }
-    });
-    debugPrint(listVelocity.toString());
-  }
-
-  void updateDataTimeOfVelocity(){
-    setState(() {
-      String time = "${listDataOfDevice[0].hour}:${listDataOfDevice[0].minute}";
-      listTimeOfVelocity.add(time);
-      if(listTimeOfVelocity.length > 5){
-        listTimeOfVelocity.removeAt(0);
-      }
-    });
-    debugPrint(listTimeOfVelocity.toString());
   }
 
   @override
@@ -266,10 +287,10 @@ class _HomeScreenState extends State<HomeScreen> {
         backgroundColor: Color(Global.primaryColor),
         centerTitle: true,
         leading: GestureDetector(
-            onTap: (){
+            onTap: () {
               showMemberMenu();
             },
-            child: const Icon(Icons.menu,color: Colors.black)),
+            child: const Icon(Icons.menu, color: Colors.black)),
         title: const Text(
           'Trang chủ',
           style: TextStyle(
@@ -283,7 +304,7 @@ class _HomeScreenState extends State<HomeScreen> {
       body: SingleChildScrollView(
         scrollDirection: Axis.vertical,
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(20,0,20,100),
+          padding: const EdgeInsets.fromLTRB(20, 0, 20, 100),
           child: Column(
             children: [
               ///
@@ -319,7 +340,9 @@ class _HomeScreenState extends State<HomeScreen> {
                               border: Border.all(color: Colors.black),
                               borderRadius: BorderRadius.circular(10)),
                           child: Text(
-                           listDataOfDevice.isNotEmpty ?listDataOfDevice[0].distance.toString():"0",
+                            listDataOfDevice.isNotEmpty
+                                ? listDataOfDevice[0].distance.toString()
+                                : "0",
                             overflow: TextOverflow.ellipsis,
                             maxLines: 1,
                             style: const TextStyle(
@@ -351,7 +374,9 @@ class _HomeScreenState extends State<HomeScreen> {
                               border: Border.all(color: Colors.black),
                               borderRadius: BorderRadius.circular(10)),
                           child: Text(
-                              listDataOfDevice.isNotEmpty ?listDataOfDevice[0].velocity.toString():"0",
+                            listDataOfDevice.isNotEmpty
+                                ? listDataOfDevice[0].velocity.toString()
+                                : "0",
                             overflow: TextOverflow.ellipsis,
                             maxLines: 1,
                             style: const TextStyle(
@@ -374,7 +399,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Image.asset(IconsAssets.icHeartRate,width: 30,height: 30),
+                        Image.asset(IconsAssets.icHeartRate,
+                            width: 30, height: 30),
                         Container(
                           alignment: Alignment.center,
                           constraints: const BoxConstraints(maxWidth: 150),
@@ -382,8 +408,10 @@ class _HomeScreenState extends State<HomeScreen> {
                           decoration: BoxDecoration(
                               border: Border.all(color: Colors.black),
                               borderRadius: BorderRadius.circular(10)),
-                          child:  Text(
-                            listDataOfDevice.isNotEmpty ?listDataOfDevice[0].heartRate.toString():"0",
+                          child: Text(
+                            listDataOfDevice.isNotEmpty
+                                ? listDataOfDevice[0].heartRate.toString()
+                                : "0",
                             overflow: TextOverflow.ellipsis,
                             maxLines: 1,
                             style: const TextStyle(
@@ -412,7 +440,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 width: MediaQuery.of(context).size.width,
                 height: 400,
                 margin: const EdgeInsets.fromLTRB(20, 10, 20, 30),
-                padding: const EdgeInsets.fromLTRB(25, 20, 30, 0),
+                padding: const EdgeInsets.fromLTRB(10, 20, 20, 0),
                 decoration: BoxDecoration(
                     color: const Color(0xFFFFCC99),
                     borderRadius: BorderRadius.circular(20)),
@@ -427,7 +455,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           color: Colors.black),
                     ),
                     const Text(
-                      'm/s',
+                      '(m/s)',
                       style: TextStyle(
                           fontFamily: 'Nunito Sans',
                           fontSize: 16,
@@ -435,83 +463,10 @@ class _HomeScreenState extends State<HomeScreen> {
                           color: Colors.black),
                     ),
                     Container(
-                      width: MediaQuery.of(context).size.width,
-                      height: 300,
-                      margin: const EdgeInsets.only(top: 10),
-                      child: LineChart(
-
-                        LineChartData(
-                            lineTouchData: LineTouchData(enabled: false),
-                            titlesData: FlTitlesData(
-                              show: true,
-                              bottomTitles: AxisTitles(
-                                sideTitles: SideTitles(
-                                  showTitles: true,
-                                  reservedSize: 30,
-                                  getTitlesWidget: bottomTitleVelocityChart,
-                                  interval: 1,
-                                ),
-                              ),
-                              leftTitles: AxisTitles(
-                                sideTitles: SideTitles(
-                                  showTitles: true,
-                                  getTitlesWidget: leftTitleVelocityChart,
-                                  reservedSize: 30,
-                                  interval: 1,
-                                ),
-                              ),
-                              topTitles: AxisTitles(
-                                sideTitles: SideTitles(showTitles: false),
-                              ),
-                              rightTitles: AxisTitles(
-                                sideTitles: SideTitles(showTitles: false),
-                              ),
-                            ),
-                            gridData: FlGridData(
-                              show: true,
-                              getDrawingHorizontalLine: (value) {
-                                return FlLine(
-                                    color: Colors.black.withOpacity(0.4),
-                                    strokeWidth: 1);
-                              },
-                              drawVerticalLine: false,
-                            ),
-                            borderData: FlBorderData(
-                              show: false,
-                            ),
-                            minX: 0,
-                            maxX: 11,
-                            minY: 0,
-                            maxY: 5,
-                            baselineX: 0,
-                            baselineY: 0,
-                            lineBarsData: [
-                              LineChartBarData(
-                               // spots: point.map((point) => FlSpot(point.x, point.y)).toList(),
-                                spots: const [
-                                  FlSpot(2, 1),
-                                  FlSpot(4, 2),
-                                  FlSpot(6, 3),
-                                  FlSpot(8, 4),
-                                  FlSpot(10, 5),
-                                ],
-                                isCurved: true,
-                                color: Colors.black,
-                                barWidth: 2,
-                                isStrokeCapRound: true,
-                                dotData: FlDotData(
-                                  show: true,
-                                ),
-                                belowBarData: BarAreaData(
-                                  show: false,
-                                ),
-                              ),
-                            ]),
-                        swapAnimationDuration:
-                        const Duration(milliseconds: 120), // Optional
-                        swapAnimationCurve: Curves.linear, // Optional
-                      ),
-                    ),
+                        width: MediaQuery.of(context).size.width,
+                        height: 300,
+                        margin: const EdgeInsets.only(top: 10),
+                        child: velocityLineChart()),
                   ],
                 ),
               ),
@@ -521,7 +476,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 width: MediaQuery.of(context).size.width,
                 height: 400,
                 margin: const EdgeInsets.fromLTRB(20, 10, 20, 30),
-                padding: const EdgeInsets.fromLTRB(25, 20, 30, 0),
+                padding: const EdgeInsets.fromLTRB(10, 20, 20, 0),
                 decoration: BoxDecoration(
                     color: const Color(0xFFFFCC99),
                     borderRadius: BorderRadius.circular(20)),
@@ -535,84 +490,19 @@ class _HomeScreenState extends State<HomeScreen> {
                           fontWeight: FontWeight.bold,
                           color: Colors.black),
                     ),
+                    const Text(
+                      '(bpm)',
+                      style: TextStyle(
+                          fontFamily: 'Nunito Sans',
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black),
+                    ),
                     Container(
                       width: MediaQuery.of(context).size.width,
                       height: 300,
                       margin: const EdgeInsets.only(top: 10),
-                      child:
-                      LineChart(
-                        LineChartData(
-                            lineTouchData: LineTouchData(enabled: false),
-                            titlesData: FlTitlesData(
-                              show: true,
-                              bottomTitles: AxisTitles(
-                                sideTitles: SideTitles(
-                                  showTitles: true,
-                                  reservedSize: 30,
-                                  getTitlesWidget: bottomTitleHeartRateChart,
-                                  interval: 1,
-                                ),
-                              ),
-                              leftTitles: AxisTitles(
-                                sideTitles: SideTitles(
-                                  showTitles: true,
-                                  getTitlesWidget: leftTitleHeartRateChart,
-                                  reservedSize: 30,
-                                  interval: 1,
-                                ),
-                              ),
-                              topTitles: AxisTitles(
-                                sideTitles: SideTitles(showTitles: false),
-                              ),
-                              rightTitles: AxisTitles(
-                                sideTitles: SideTitles(showTitles: false),
-                              ),
-                            ),
-                            gridData: FlGridData(
-                              show: true,
-                              getDrawingHorizontalLine: (value) {
-                                return FlLine(
-                                    color: Colors.black.withOpacity(0.4),
-                                    strokeWidth: 1);
-                              },
-                              drawVerticalLine: false,
-                            ),
-                            borderData: FlBorderData(
-                              show: false,
-                            ),
-                            minX: 0,
-                            maxX: 11,
-                            minY: 0,
-                            maxY: 8,
-                            baselineX: 0,
-                            baselineY: 0,
-                            lineBarsData: [
-                              LineChartBarData(
-                                spots: const [
-                                  FlSpot(2, 5),
-                                  FlSpot(2, 2),
-                                  FlSpot(4, 3.44),
-                                  FlSpot(6, 5),
-                                  FlSpot(8, 4),
-                                  FlSpot(9, 5.5),
-                                  FlSpot(11, 7.5),
-                                ],
-                                isCurved: true,
-                                color: Colors.black,
-                                barWidth: 2,
-                                isStrokeCapRound: true,
-                                dotData: FlDotData(
-                                  show: false,
-                                ),
-                                belowBarData: BarAreaData(
-                                  show: false,
-                                ),
-                              ),
-                            ]),
-                        swapAnimationDuration:
-                        const Duration(milliseconds: 120), // Optional
-                        swapAnimationCurve: Curves.linear, // Optional
-                      ),
+                      child: heartRateLineChart(),
                     ),
                   ],
                 ),
@@ -637,7 +527,8 @@ class _HomeScreenState extends State<HomeScreen> {
                       height: 220,
                       margin: const EdgeInsets.symmetric(horizontal: 20),
                       child: ClipRRect(
-                        borderRadius: const BorderRadius.all(Radius.circular(10)),
+                        borderRadius:
+                            const BorderRadius.all(Radius.circular(10)),
                         child: GoogleMap(
                           onMapCreated: onMapCreate,
                           mapType: MapType.normal,
@@ -650,7 +541,8 @@ class _HomeScreenState extends State<HomeScreen> {
                             )
                           },
                           initialCameraPosition: kLake,
-                          minMaxZoomPreference: const MinMaxZoomPreference(5, 26),
+                          minMaxZoomPreference:
+                              const MinMaxZoomPreference(5, 26),
                         ),
                       ),
                     ),
@@ -658,10 +550,14 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
 
-              /// clear data
+              /// button clear data
               Padding(
-                padding: const EdgeInsets.fromLTRB(30,40,30,0),
-                child: ButtonNext(onTap: (){},textInside: "Xóa dữ liệu",color: Colors.orange,),
+                padding: const EdgeInsets.fromLTRB(30, 40, 30, 0),
+                child: ButtonNext(
+                  onTap: () {},
+                  textInside: "Xóa dữ liệu",
+                  color: Colors.orange,
+                ),
               )
             ],
           ),
@@ -670,206 +566,81 @@ class _HomeScreenState extends State<HomeScreen> {
     ));
   }
 
-  Widget bottomTitleVelocityChart(double value, TitleMeta meta) {
-    const style = TextStyle(
-      fontWeight: FontWeight.bold,
-      fontSize: 14,
-    );
-    Widget text;
-    if(listTimeOfVelocity.isNotEmpty && listTimeOfVelocity.length==5 && listVelocity.length == 7){
-      switch (value.toInt()) {
-        case 2:
-          text =  Text(listTimeOfVelocity[listTimeOfVelocity.length-1], style: style);
-          break;
-        case 4:
-          text =  Text(listTimeOfVelocity[listTimeOfVelocity.length-2], style: style);
-          break;
-        case 6:
-          text =  Text(listTimeOfVelocity[listTimeOfVelocity.length-3], style: style);
-          break;
-        case 8:
-          text =  Text(listTimeOfVelocity[listTimeOfVelocity.length-4], style: style);
-          break;
-        case 10:
-          text =  Text(listTimeOfVelocity[listTimeOfVelocity.length-5], style: style);
-          break;
-        default:
-          text =  const Text('', style: style);
-          break;
-      }
-      return SideTitleWidget(
-        axisSide: meta.axisSide,
-        child: text,
-      );
-    }else{
-      switch (value.toInt()) {
-        case 2:
-          text = const Text('00:00', style: style);
-          break;
-        default:
-          text = const Text('', style: style);
-          break;
-      }
-      return SideTitleWidget(
-        axisSide: meta.axisSide,
-        child: text,
-      );
-    }
-
-
-
+  /// Returns the realtime velocity line chart.
+  SfCartesianChart velocityLineChart() {
+    return SfCartesianChart(
+        primaryXAxis: CategoryAxis(
+            axisLine: const AxisLine(color: Colors.black),
+            majorTickLines: const MajorTickLines(size: 8, color: Colors.black)),
+        primaryYAxis: NumericAxis(
+            borderColor: Colors.black,
+            axisLine: const AxisLine(width: 1, color: Colors.black),
+            majorTickLines: const MajorTickLines(size: 4, color: Colors.black)),
+        series: <LineSeries<_ChartDataVelocity, String>>[
+          LineSeries<_ChartDataVelocity, String>(
+            dataLabelSettings: const DataLabelSettings(
+                isVisible: true,
+                textStyle: TextStyle(color: Colors.black, fontSize: 8)),
+            markerSettings: const MarkerSettings(
+                isVisible: true,
+                width: 2,
+                height: 2,
+                borderWidth: 2,
+                borderColor: Colors.black),
+            onRendererCreated: (ChartSeriesController controller) {
+              _chartSeriesController = controller;
+            },
+            dataSource: chartDataVelocity,
+            color: Colors.orange,
+            xValueMapper: (_ChartDataVelocity sales, _) => sales.time,
+            yValueMapper: (_ChartDataVelocity sales, _) => sales.velocity,
+            animationDuration: 0,
+          )
+        ]);
   }
 
-  Widget leftTitleVelocityChart(double value, TitleMeta meta) {
-    const style = TextStyle(
-      fontWeight: FontWeight.bold,
-      fontSize: 14,
-    );
-    String text;
-    if(listVelocity.isNotEmpty && listVelocity.length == 7){
-      switch (value.toInt()) {
-        case 0:
-          text = '0';
-          break;
-        case 1:
-          text =  listVelocity[(listVelocity.length)-1].toString();
-          break;
-        case 2:
-          text = listVelocity[(listVelocity.length)-2].toString();
-          break;
-        case 3:
-          text = listVelocity[(listVelocity.length)-3].toString();
-          break;
-        case 4:
-          text = listVelocity[(listVelocity.length)-4].toString();
-          break;
-        case 5:
-          text = listVelocity[(listVelocity.length)-5].toString();
-          break;
-        // case 6:
-        //   text = listVelocity[(listVelocity.length)-6].toString();
-        //   break;
-        // case 7:
-        //   text =  listVelocity[(listVelocity.length)-7].toString();
-        //   break;
-        default:
-          return Container();
-      }
-      debugPrint(value.toString());
-      return Text(text, style: style, textAlign: TextAlign.center);
-    }
-    else{
-      switch (value.toInt()) {
-        case 0:
-          text = '0';
-          break;
-        case 1:
-          text =  '0';
-          break;
-        case 2:
-          text = '0';
-          break;
-        case 3:
-          text = '0';
-          break;
-        case 4:
-          text = '0';
-          break;
-        case 5:
-          text = '0';
-          break;
-        case 6:
-          text = '0';
-          break;
-        case 7:
-          text =  '0';
-          break;
-        default:
-          return Container();
-      }
-      debugPrint(value.toString());
-      return Text(text, style: style, textAlign: TextAlign.center);
-    }
-
-
+  /// Returns the realtime heart rate line chart.
+  SfCartesianChart heartRateLineChart() {
+    return SfCartesianChart(
+        primaryXAxis: CategoryAxis(
+            axisLine: const AxisLine(color: Colors.black),
+            majorTickLines: const MajorTickLines(size: 8, color: Colors.black)),
+        primaryYAxis: NumericAxis(
+            borderColor: Colors.black,
+            axisLine: const AxisLine(width: 1, color: Colors.black),
+            majorTickLines: const MajorTickLines(size: 4, color: Colors.black)),
+        series: <LineSeries<_ChartDataHeartRate, String>>[
+          LineSeries<_ChartDataHeartRate, String>(
+            dataLabelSettings: const DataLabelSettings(
+                isVisible: true,
+                textStyle: TextStyle(color: Colors.black, fontSize: 8)),
+            markerSettings: const MarkerSettings(
+                isVisible: true,
+                width: 2,
+                height: 2,
+                borderWidth: 2,
+                borderColor: Colors.black),
+            onRendererCreated: (ChartSeriesController controller) {
+              _chartSeriesController = controller;
+            },
+            dataSource: chartDataHeartRate,
+            color: Colors.orange,
+            xValueMapper: (_ChartDataHeartRate sales, _) => sales.time,
+            yValueMapper: (_ChartDataHeartRate sales, _) => sales.heartRate,
+            animationDuration: 0,
+          )
+        ]);
   }
-
-  Widget bottomTitleHeartRateChart(double value, TitleMeta meta) {
-    const style = TextStyle(
-      fontWeight: FontWeight.bold,
-      fontSize: 14,
-    );
-    Widget text;
-    switch (value.toInt()) {
-      case 2:
-        text = const Text('2:30', style: style);
-        break;
-      case 4:
-        text = const Text('3:40', style: style);
-        break;
-      case 6:
-        text = const Text('4:00', style: style);
-        break;
-      case 8:
-        text = const Text('5:05', style: style);
-        break;
-      case 10:
-        text = const Text('6:00', style: style);
-        break;
-      default:
-        text = const Text('', style: style);
-        break;
-    }
-
-    return SideTitleWidget(
-      axisSide: meta.axisSide,
-      child: text,
-    );
-  }
-
-  Widget leftTitleHeartRateChart(double value, TitleMeta meta) {
-    const style = TextStyle(
-      fontWeight: FontWeight.bold,
-      fontSize: 14,
-    );
-    String text;
-    switch (value.toInt()) {
-      case 0:
-        text = '0';
-        break;
-      case 1:
-        text = '20';
-        break;
-      case 2:
-        text = '40';
-        break;
-      case 3:
-        text = '60';
-        break;
-      case 4:
-        text = '80';
-        break;
-      case 5:
-        text = '120';
-        break;
-      case 6:
-        text = '140';
-        break;
-      case 7:
-        text = '160';
-        break;
-      default:
-        return Container();
-    }
-
-    return Text(text, style: style, textAlign: TextAlign.center);
-  }
-
 }
 
-class PricePoint {
-  final double x;
-  final double y;
-  PricePoint({required this.x, required this.y});
+class _ChartDataVelocity {
+  _ChartDataVelocity(this.time, this.velocity);
+  final String time;
+  final int velocity;
 }
 
+class _ChartDataHeartRate {
+  _ChartDataHeartRate(this.time, this.heartRate);
+  final String time;
+  final int heartRate;
+}
