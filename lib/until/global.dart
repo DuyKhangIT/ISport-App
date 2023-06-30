@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 import '../model/account_info/data_account_info_response.dart';
 import '../model/list_device_user/data_list_device_user_response.dart';
@@ -8,6 +9,7 @@ class Global{
   static String mToken = "";
   static DataAccountInfoResponse? accountInfo;
   static List<DataListDeviceUserResponse> listDeviceUser = [];
+  static LatLng? latLngFromDB;
 
 
   /// Condition to check the email address
@@ -34,6 +36,6 @@ class Global{
 
   static String convertMedia(String path) {
     debugPrint("Loaded path: " + path);
-    return "http://192.168.1.7:3002/$path";
+    return "http://192.168.1.8:3002/$path";
   }
 }

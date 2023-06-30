@@ -19,5 +19,6 @@ class IconsAssets {
   static const String icMaleGender= 'assets/icons/ic_male_gender.png';
   static const String icDropDown= 'assets/icons/ic_drop_down.png';
   static const String icHeartRate= 'assets/icons/ic_heart_rate.png';
+  static const String icDot= 'assets/icons/ic_dot.png';
 
 }

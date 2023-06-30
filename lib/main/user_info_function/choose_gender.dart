@@ -43,7 +43,7 @@ class _ChooseGenderScreenState extends State<ChooseGenderScreen> {
     try {
       body = await HttpHelper.invokeHttp(
           Uri.parse(
-              "http://192.168.1.7:3002/api/device/update?iddevice=${widget.dataDeviceUser!.idDevice}"),
+              "http://192.168.1.8:3002/api/device/update?iddevice=${widget.dataDeviceUser!.idDevice}"),
           RequestType.post,
           headers: null,
           body: const JsonEncoder()

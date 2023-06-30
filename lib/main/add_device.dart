@@ -77,7 +77,7 @@ class _AddDeviceScreenState extends State<AddDeviceScreen> {
     Map<String, dynamic>? body;
     try {
       body = await HttpHelper.invokeHttp(
-          Uri.parse("http://192.168.1.7:3002/api/device"), RequestType.post,
+          Uri.parse("http://192.168.1.8:3002/api/device"), RequestType.post,
           headers: null,
           body: const JsonEncoder().convert(addDeviceRequest.toBodyRequest()));
     } catch (error) {
@@ -132,7 +132,7 @@ class _AddDeviceScreenState extends State<AddDeviceScreen> {
     Map<String, dynamic>? body;
     try {
       body = await HttpHelper.invokeHttp(
-          Uri.parse("http://192.168.1.7:3002/api/user/devices"),
+          Uri.parse("http://192.168.1.8:3002/api/user/devices"),
           RequestType.get,
           headers: null,
           body: null);

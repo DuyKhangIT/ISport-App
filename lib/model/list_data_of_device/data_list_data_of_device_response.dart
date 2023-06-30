@@ -2,8 +2,8 @@ class DataListDataOfDeviceResponse {
   int idData = 0;
   int idDevice = 0;
   String time = "";
-  int lat = 0;
-  int lng = 0;
+  dynamic lat;
+  dynamic lng;
   int velocity = 0;
   int distance = 0;
   int heartRate = 0;

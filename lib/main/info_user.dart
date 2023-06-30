@@ -33,7 +33,7 @@ class _InfoUserScreenState extends State<InfoUserScreen> {
     Map<String, dynamic>? body;
     try {
       body = await HttpHelper.invokeHttp(
-          Uri.parse("http://192.168.1.7:3002/api/device?iddevice=${widget.dataDeviceUser!.idDevice}"),
+          Uri.parse("http://192.168.1.8:3002/api/device?iddevice=${widget.dataDeviceUser!.idDevice}"),
           RequestType.delete,
           headers: null,
           body: null);
@@ -62,7 +62,7 @@ class _InfoUserScreenState extends State<InfoUserScreen> {
     Map<String, dynamic>? body;
     try {
       body = await HttpHelper.invokeHttp(
-          Uri.parse("http://192.168.1.7:3002/api/user/devices"),
+          Uri.parse("http://192.168.1.8:3002/api/user/devices"),
           RequestType.get,
           headers: null,
           body: null);

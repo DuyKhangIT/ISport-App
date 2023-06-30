@@ -93,7 +93,7 @@ class _AvatarAccountUserScreenState extends State<AvatarAccountUserScreen> {
     try {
       body = await HttpHelper.invokeSingleFile(
           Uri.parse(
-              "http://192.168.1.7:3002/api/upload-media"),
+              "http://192.168.1.8:3002/api/upload-media"),
           RequestType.post,
           filePath,
           headers: null,
@@ -135,7 +135,7 @@ class _AvatarAccountUserScreenState extends State<AvatarAccountUserScreen> {
     try {
       body = await HttpHelper.invokeHttp(
           Uri.parse(
-              "http://192.168.1.7:3002/api/user/update"),
+              "http://192.168.1.8:3002/api/user/update"),
           RequestType.post,
           headers: null,
           body: const JsonEncoder()
@@ -193,7 +193,7 @@ class _AvatarAccountUserScreenState extends State<AvatarAccountUserScreen> {
     Map<String, dynamic>? body;
     try {
       body = await HttpHelper.invokeHttp(
-          Uri.parse("http://192.168.1.7:3002/api/user"),
+          Uri.parse("http://192.168.1.8:3002/api/user"),
           RequestType.get,
           headers: null,
           body: null);

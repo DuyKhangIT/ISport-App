@@ -31,6 +31,7 @@ class _HomeScreenState extends State<HomeScreen> {
   List<DataListDeviceUserResponse> listDeviceUser = [];
   List<DataListDataOfDeviceResponse> listDataOfDevice = [];
 
+  Set<Marker> marker = {};
   ChartSeriesController? _chartSeriesController;
 
   /// list data velocity line chart
@@ -43,13 +44,16 @@ class _HomeScreenState extends State<HomeScreen> {
   bool isLoading = false;
   bool isUpdate = false;
 
-  Set<Marker> markersConsumer = {};
+
   CameraPosition kLake =
-      const CameraPosition(target: LatLng(10.9501542, 106.6707032), zoom: 16);
+       const CameraPosition(target: LatLng(10.9501542, 106.6707032), zoom: 16);
 
   Future<void> goToTheLake() async {
     final GoogleMapController controller = await _controller.future;
-    controller.animateCamera(CameraUpdate.newCameraPosition(kLake));
+    controller.animateCamera(CameraUpdate.newLatLng(Global.latLngFromDB!));
+    setState(() {
+      _setMarker(Global.latLngFromDB!);
+    });
   }
 
   void onMapCreate(GoogleMapController controller) {
@@ -92,7 +96,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void connectAndListenSocket() {
     debugPrint('-------------Call function-----------------');
-    socket = IO.io('http://192.168.1.7:3002',
+    socket = IO.io('http://192.168.1.8:3002',
         IO.OptionBuilder().setTransports(['websocket']).build());
 
     socket.onConnect((_) {
@@ -161,7 +165,7 @@ class _HomeScreenState extends State<HomeScreen> {
     Map<String, dynamic>? body;
     try {
       body = await HttpHelper.invokeHttp(
-          Uri.parse("http://192.168.1.7:3002/api/user/devices"),
+          Uri.parse("http://192.168.1.8:3002/api/user/devices"),
           RequestType.get,
           headers: null,
           body: null);
@@ -196,7 +200,7 @@ class _HomeScreenState extends State<HomeScreen> {
     Map<String, dynamic>? body;
     try {
       body = await HttpHelper.invokeHttp(
-          Uri.parse("http://192.168.1.7:3002/api/device?iddevice=$idDevice"),
+          Uri.parse("http://192.168.1.8:3002/api/device?iddevice=$idDevice"),
           RequestType.get,
           headers: null,
           body: null);
@@ -224,9 +228,13 @@ class _HomeScreenState extends State<HomeScreen> {
                   "${listDataOfDevice[0].hour}:${listDataOfDevice[0].minute}:${listDataOfDevice[0].second}",
                   listDataOfDevice[0].heartRate),
             ];
+            Global.latLngFromDB = LatLng(listDataOfDeviceResponse.listDataDevice[0].lat, listDataOfDeviceResponse.listDataDevice[0].lng);
+            goToTheLake();
           } else {
             updateDataVelocityChart();
             updateDataHeartRateChart();
+            Global.latLngFromDB = LatLng(listDataOfDeviceResponse.listDataDevice[0].lat, listDataOfDeviceResponse.listDataDevice[0].lng);
+            goToTheLake();
           }
         }
       });
@@ -252,7 +260,7 @@ class _HomeScreenState extends State<HomeScreen> {
     Map<String, dynamic>? body;
     try {
       body = await HttpHelper.invokeHttp(
-          Uri.parse("http://192.168.1.7:3002/api/user"), RequestType.get,
+          Uri.parse("http://192.168.1.8:3002/api/user"), RequestType.get,
           headers: null, body: null);
     } catch (error) {
       debugPrint("Fail to get account info $error");
@@ -277,6 +285,14 @@ class _HomeScreenState extends State<HomeScreen> {
       debugPrint(accountInfoResponse.message);
     }
     return accountInfoResponse;
+  }
+
+  void _setMarker(LatLng point){
+    setState(() {
+      marker.add(Marker( markerId: MarkerId('Marker: ${Global.latLngFromDB}'),
+          icon: BitmapDescriptor.defaultMarker,
+          position: point));
+    });
   }
 
   @override
@@ -511,9 +527,11 @@ class _HomeScreenState extends State<HomeScreen> {
               /// map
               GestureDetector(
                 onTap: () {
-                  Navigator.pushNamed(
+                  Navigator.push(
                     context,
-                    MapScreen.routeName,
+                    MaterialPageRoute(
+                        builder: (context) => const MapScreen(
+                        )),
                   );
                 },
                 child: Container(
@@ -533,16 +551,10 @@ class _HomeScreenState extends State<HomeScreen> {
                           onMapCreated: onMapCreate,
                           mapType: MapType.normal,
                           zoomControlsEnabled: false,
-                          markers: {
-                            const Marker(
-                              markerId: MarkerId('Position'),
-                              icon: BitmapDescriptor.defaultMarker,
-                              position: LatLng(10.9501542, 106.6707032),
-                            )
-                          },
+                          markers: marker,
                           initialCameraPosition: kLake,
                           minMaxZoomPreference:
-                              const MinMaxZoomPreference(5, 26),
+                              const MinMaxZoomPreference(16, 24),
                         ),
                       ),
                     ),

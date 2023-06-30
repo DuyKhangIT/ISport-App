@@ -46,7 +46,7 @@ class _InputFullNameAccountUserScreenState extends State<InputFullNameAccountUse
     try {
       body = await HttpHelper.invokeHttp(
           Uri.parse(
-              "http://192.168.1.7:3002/api/user/update"),
+              "http://192.168.1.8:3002/api/user/update"),
           RequestType.post,
           headers: null,
           body: const JsonEncoder()
@@ -105,7 +105,7 @@ class _InputFullNameAccountUserScreenState extends State<InputFullNameAccountUse
     Map<String, dynamic>? body;
     try {
       body = await HttpHelper.invokeHttp(
-          Uri.parse("http://192.168.1.7:3002/api/user"),
+          Uri.parse("http://192.168.1.8:3002/api/user"),
           RequestType.get,
           headers: null,
           body: null);

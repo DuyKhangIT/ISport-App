@@ -50,7 +50,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     try {
       body = await HttpHelper.invokeHttp(
           Uri.parse(
-              "http://192.168.1.7:3002/api/register"),
+              "http://192.168.1.8:3002/api/register"),
           RequestType.post,
           headers: null,
           body: const JsonEncoder().convert(registerRequest.toBodyRequest()));
