@@ -34,9 +34,7 @@ class _MapScreenState extends State<MapScreen> {
   Future<void> goToTheLake() async {
     final GoogleMapController controller = await _controller.future;
     controller.animateCamera(CameraUpdate.newLatLng(Global.latLngFromDB!));
-    setState(() {
       _setMarker(Global.latLngFromDB!);
-    });
   }
 
   void onMapCreate(GoogleMapController controller) {
@@ -69,14 +67,14 @@ class _MapScreenState extends State<MapScreen> {
         body: Stack(
           children: [
             GoogleMap(
-              //onCameraMoveStarted: goToTheLake,
+              onCameraMoveStarted: goToTheLake,
               onCameraIdle: goToTheLake,
               onMapCreated: onMapCreate,
               mapType: MapType.normal,
               zoomControlsEnabled: false,
               markers: marker,
               initialCameraPosition: kLake,
-              minMaxZoomPreference: const MinMaxZoomPreference(16, 24),
+              minMaxZoomPreference: const MinMaxZoomPreference(6, 24),
             ),
             backButton(),
             myLocationButton()

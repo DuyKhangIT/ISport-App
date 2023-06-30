@@ -51,9 +51,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> goToTheLake() async {
     final GoogleMapController controller = await _controller.future;
     controller.animateCamera(CameraUpdate.newLatLng(Global.latLngFromDB!));
-    setState(() {
       _setMarker(Global.latLngFromDB!);
-    });
   }
 
   void onMapCreate(GoogleMapController controller) {
