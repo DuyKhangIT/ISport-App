@@ -51,7 +51,9 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> goToTheLake() async {
     final GoogleMapController controller = await _controller.future;
     controller.animateCamera(CameraUpdate.newLatLng(Global.latLngFromDB!));
-      _setMarker(Global.latLngFromDB!);
+      setState(() {
+        _setMarker(Global.latLngFromDB!);
+      });
   }
 
   void onMapCreate(GoogleMapController controller) {
@@ -216,6 +218,7 @@ class _HomeScreenState extends State<HomeScreen> {
         debugPrint(listDataOfDeviceResponse.message);
         if (listDataOfDevice.isNotEmpty) {
           if (isUpdate == false) {
+            Global.latLngFromDB = LatLng(listDataOfDeviceResponse.listDataDevice[0].lat, listDataOfDeviceResponse.listDataDevice[0].lng);
             chartDataVelocity = <_ChartDataVelocity>[
               _ChartDataVelocity(
                   "${listDataOfDevice[0].hour}:${listDataOfDevice[0].minute}:${listDataOfDevice[0].second}",
@@ -226,12 +229,11 @@ class _HomeScreenState extends State<HomeScreen> {
                   "${listDataOfDevice[0].hour}:${listDataOfDevice[0].minute}:${listDataOfDevice[0].second}",
                   listDataOfDevice[0].heartRate),
             ];
-            Global.latLngFromDB = LatLng(listDataOfDeviceResponse.listDataDevice[0].lat, listDataOfDeviceResponse.listDataDevice[0].lng);
             goToTheLake();
           } else {
+            Global.latLngFromDB = LatLng(listDataOfDeviceResponse.listDataDevice[0].lat, listDataOfDeviceResponse.listDataDevice[0].lng);
             updateDataVelocityChart();
             updateDataHeartRateChart();
-            Global.latLngFromDB = LatLng(listDataOfDeviceResponse.listDataDevice[0].lat, listDataOfDeviceResponse.listDataDevice[0].lng);
             goToTheLake();
           }
         }
@@ -286,11 +288,15 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _setMarker(LatLng point){
-    setState(() {
-      marker.add(Marker( markerId: MarkerId('Marker: ${Global.latLngFromDB}'),
+      marker.add(Marker( markerId: MarkerId('MarkerMap: ${Global.latLngFromDB}'),
           icon: BitmapDescriptor.defaultMarker,
           position: point));
-    });
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    marker.clear();
   }
 
   @override

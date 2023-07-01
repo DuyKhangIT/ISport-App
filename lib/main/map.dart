@@ -34,7 +34,10 @@ class _MapScreenState extends State<MapScreen> {
   Future<void> goToTheLake() async {
     final GoogleMapController controller = await _controller.future;
     controller.animateCamera(CameraUpdate.newLatLng(Global.latLngFromDB!));
-      _setMarker(Global.latLngFromDB!);
+      setState(() {
+        _setMarker(Global.latLngFromDB!);
+      });
+      debugPrint("Marker: $marker");
   }
 
   void onMapCreate(GoogleMapController controller) {
@@ -44,13 +47,10 @@ class _MapScreenState extends State<MapScreen> {
   }
 
   void _setMarker(LatLng point) {
-    setState(() {
       marker.add(Marker(
           markerId: MarkerId('Marker: ${Global.latLngFromDB!}'),
           icon: customIconMarker!,
-          position: point));
-    });
-  }
+          position: point));}
 
   @override
   void initState() {
@@ -61,13 +61,18 @@ class _MapScreenState extends State<MapScreen> {
   }
 
   @override
+  void dispose() {
+    super.dispose();
+    marker.clear();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return SafeArea(
       child: Scaffold(
         body: Stack(
           children: [
             GoogleMap(
-              onCameraMoveStarted: goToTheLake,
               onCameraIdle: goToTheLake,
               onMapCreated: onMapCreate,
               mapType: MapType.normal,
